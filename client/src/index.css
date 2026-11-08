@@ -1,0 +1,203 @@
+/* ==================================================================
+   F1Paddock — global stylesheet
+
+   Tailwind v4 is configured here in CSS rather than in a
+   tailwind.config.js file. The @theme block below defines the design
+   tokens, and Tailwind turns each one into utility classes:
+
+       --color-ink      ->  bg-ink, text-ink, border-ink
+       --color-accent   ->  bg-accent, text-accent, ...
+
+   Below that, @layer components defines the few patterns that repeat
+   on nearly every page, so the JSX stays readable instead of carrying
+   fifteen utility classes on every button.
+   ================================================================== */
+
+@import 'tailwindcss';
+
+@theme {
+  /* Surfaces — a cool near-black, lighter as elements come forward */
+  --color-ink: #0a0a0c;
+  --color-surface: #131318;
+  --color-surface-2: #1c1c23;
+  --color-surface-3: #26262f;
+  --color-line: #2c2c36;
+  --color-line-strong: #3d3d4a;
+
+  /* Text */
+  --color-chalk: #f4f4f5;
+  --color-muted: #a1a1aa;
+  --color-dim: #71717a;
+
+  /* Accents */
+  --color-accent: #ff2d20;
+  --color-accent-soft: #ff6b5f;
+  --color-accent-dim: #c41a10;
+  --color-flag: #ffc53d;
+
+  /* Status */
+  --color-go: #34d399;
+  --color-warn: #fbbf24;
+  --color-stop: #f87171;
+
+  /* Type */
+  --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-chalk);
+  font-family: var(--font-sans);
+  /* Two faint glows so the dark background is not flat */
+  background-image:
+    radial-gradient(900px 460px at 8% -8%, rgba(255, 45, 32, 0.1), transparent 70%),
+    radial-gradient(760px 420px at 96% 2%, rgba(255, 197, 61, 0.07), transparent 70%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: rgba(255, 45, 32, 0.32);
+}
+
+/* Scrollbar, so it does not glare white on a dark page */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-3);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-line-strong);
+}
+
+/* ------------------------------------------------------------------
+   Repeating patterns
+   ------------------------------------------------------------------ */
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+
+  /* --- Buttons --- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5
+           font-display text-base font-semibold tracking-wide uppercase
+           whitespace-nowrap transition-all duration-150
+           disabled:cursor-not-allowed disabled:opacity-45;
+  }
+  .btn-sm {
+    @apply px-3.5 py-1.5 text-sm;
+  }
+  .btn-primary {
+    @apply bg-accent text-white shadow-[0_8px_28px_-10px_rgba(255,45,32,0.8)]
+           hover:bg-accent-soft hover:-translate-y-px active:translate-y-0;
+  }
+  .btn-ghost {
+    @apply border border-line-strong bg-white/5 text-chalk
+           hover:border-accent hover:bg-white/10;
+  }
+  .btn-quiet {
+    @apply text-muted hover:bg-white/5 hover:text-chalk;
+  }
+  .btn-danger {
+    @apply border border-stop/40 bg-stop/10 text-stop hover:bg-stop/20;
+  }
+
+  /* --- Surfaces --- */
+  .card {
+    @apply rounded-2xl border border-line bg-surface;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-line-strong
+           hover:shadow-[0_20px_50px_-24px_rgba(0,0,0,0.9)];
+  }
+
+  /* --- Forms --- */
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-muted;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-surface-2 px-4 py-2.5 text-chalk
+           placeholder:text-dim transition-colors
+           focus:border-accent focus:ring-[3px] focus:ring-accent/20 focus:outline-none;
+  }
+  .input-error {
+    @apply border-stop focus:border-stop focus:ring-stop/20;
+  }
+  .field-error {
+    @apply mt-1.5 block text-sm text-stop;
+  }
+
+  /* --- Small bits --- */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-2
+           px-3 py-1 text-sm text-muted transition-colors
+           hover:border-line-strong hover:text-chalk;
+  }
+  .chip-on {
+    @apply border-accent bg-accent/15 text-accent-soft;
+  }
+  .tag {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.7rem] font-semibold
+           tracking-widest uppercase;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold tracking-[0.18em] text-dim uppercase;
+  }
+  .meta {
+    @apply font-mono text-xs tracking-wide text-dim uppercase;
+  }
+
+  /* --- Loading --- */
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-surface-2;
+  }
+}
+
+/* Respect the OS reduce-motion setting */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
