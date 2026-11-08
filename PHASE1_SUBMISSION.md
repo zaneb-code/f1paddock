@@ -9,10 +9,8 @@
 ## Repository
 
 ```
-https://github.com/<your-username>/f1paddock
+https://github.com/<zaneb-code>/f1paddock
 ```
-
-> Replace `<your-username>` with your GitHub username before submitting.
 
 ---
 
