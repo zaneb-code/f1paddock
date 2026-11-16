@@ -5,7 +5,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { PageHeading, Loading, ErrorState, EmptyState, Tabs } from '../components/ui'
+import { Loading, ErrorState, EmptyState, Tabs } from '../components/ui'
 import RaceCard from '../components/f1/RaceCard'
 import {
   fetchSchedule,
@@ -44,8 +44,10 @@ export default function Races() {
     const now = Date.now()
     let list = races
 
-    if (tab === 'upcoming') list = list.filter((r) => new Date(r.startsAt ?? r.date).getTime() > now)
-    if (tab === 'completed') list = list.filter((r) => new Date(r.startsAt ?? r.date).getTime() <= now)
+    if (tab === 'upcoming')
+      list = list.filter((r) => new Date(r.startsAt ?? r.date).getTime() > now)
+    if (tab === 'completed')
+      list = list.filter((r) => new Date(r.startsAt ?? r.date).getTime() <= now)
     if (tab === 'sprint') list = list.filter((r) => r.isSprintWeekend)
 
     if (query.trim()) {
@@ -55,7 +57,7 @@ export default function Races() {
           r.raceName.toLowerCase().includes(needle) ||
           r.circuitName.toLowerCase().includes(needle) ||
           (r.country ?? '').toLowerCase().includes(needle) ||
-          (r.locality ?? '').toLowerCase().includes(needle)
+          (r.locality ?? '').toLowerCase().includes(needle),
       )
     }
 
@@ -73,60 +75,78 @@ export default function Races() {
   }, [races])
 
   return (
-    <div className="shell py-10">
-      <PageHeading
-        eyebrow={`${season} season`}
-        title="Race calendar"
-        subtitle="Every Grand Prix with its full weekend timetable — practice, qualifying, sprints and the race itself, in your timezone."
-      />
+    <div className="pb-12">
+      {/* ---------------- Season banner ----------------
+          The year carries the page, the way a season poster does. The
+          photograph sits behind it via .photo-hero in index.css. */}
+      <header className="photo-hero photo-strip border-b border-line">
+        <div className="shell py-12 text-center sm:py-16">
+          <p className="eyebrow mb-3">Formula 1 world championship</p>
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <Tabs
-          tabs={TABS.map((t) => ({ ...t, count: counts[t.id] }))}
-          active={tab}
-          onChange={setTab}
-        />
-        <input
-          type="search"
-          className="input max-w-xs"
-          placeholder="Search circuit or country…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search races"
-        />
-      </div>
+          <h1 className="font-display text-7xl leading-none font-bold tracking-tight text-chalk sm:text-8xl">
+            {season}
+          </h1>
 
-      {status === 'loading' && <Loading label="Loading the calendar…" />}
+          <p className="mx-auto mt-4 max-w-xl text-sm text-muted sm:text-base">
+            Every Grand Prix with its full weekend timetable — practice, qualifying, sprints and the
+            race itself, in your timezone.
+          </p>
 
-      {status === 'failed' && (
-        <ErrorState message={error} onRetry={() => dispatch(fetchSchedule(season))} />
-      )}
+          <p className="meta mt-5">
+            {counts.all} rounds · {counts.sprint} sprint weekends · {counts.completed} run
+          </p>
+        </div>
+      </header>
 
-      {status === 'succeeded' &&
-        (visible.length ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visible.map((race) => (
-              <RaceCard key={race.round} race={race} isNext={race.round === nextRace?.round} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="No races match"
-            message="Try a different search term or filter."
-            icon="⚑"
-            action={
-              <button
-                className="btn btn-sm btn-primary"
-                onClick={() => {
-                  setQuery('')
-                  setTab('all')
-                }}
-              >
-                Clear filters
-              </button>
-            }
+      <div className="shell pt-8">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Tabs
+            tabs={TABS.map((t) => ({ ...t, count: counts[t.id] }))}
+            active={tab}
+            onChange={setTab}
           />
-        ))}
+          <input
+            type="search"
+            className="input max-w-xs"
+            placeholder="Search circuit or country…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search races"
+          />
+        </div>
+
+        {status === 'loading' && <Loading label="Loading the calendar…" />}
+
+        {status === 'failed' && (
+          <ErrorState message={error} onRetry={() => dispatch(fetchSchedule(season))} />
+        )}
+
+        {status === 'succeeded' &&
+          (visible.length ? (
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+              {visible.map((race) => (
+                <RaceCard key={race.round} race={race} isNext={race.round === nextRace?.round} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="No races match"
+              message="Try a different search term or filter."
+              icon="⚑"
+              action={
+                <button
+                  className="btn btn-sm btn-primary"
+                  onClick={() => {
+                    setQuery('')
+                    setTab('all')
+                  }}
+                >
+                  Clear filters
+                </button>
+              }
+            />
+          ))}
+      </div>
     </div>
   )
 }
