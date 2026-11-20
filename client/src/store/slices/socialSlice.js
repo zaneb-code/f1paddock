@@ -16,7 +16,7 @@
  */
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import * as db from '../../api/mockDb'
+import * as db from '../../api/social'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
@@ -31,7 +31,7 @@ export const loadCommunities = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const loadCommunity = createAsyncThunk(
@@ -44,7 +44,7 @@ export const loadCommunity = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const createCommunity = createAsyncThunk(
@@ -55,7 +55,7 @@ export const createCommunity = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const joinCommunity = createAsyncThunk(
@@ -66,7 +66,7 @@ export const joinCommunity = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 /* ---------- Posts ---------- */
@@ -79,7 +79,7 @@ export const loadPosts = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const addPost = createAsyncThunk('social/addPost', async (payload, { rejectWithValue }) => {
@@ -98,7 +98,7 @@ export const removePost = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const likePost = createAsyncThunk(
@@ -109,7 +109,7 @@ export const likePost = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 /* ---------- Comments ---------- */
@@ -122,7 +122,7 @@ export const loadComments = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const addComment = createAsyncThunk(
@@ -133,7 +133,7 @@ export const addComment = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 const initialState = {
@@ -220,7 +220,7 @@ const socialSlice = createSlice({
           state.community = { ...state.community, memberIds: updated.memberIds }
         }
         state.communities = state.communities.map((c) =>
-          c.id === updated.id ? { ...c, memberIds: updated.memberIds } : c
+          c.id === updated.id ? { ...c, memberIds: updated.memberIds } : c,
         )
       })
 
@@ -254,7 +254,7 @@ const socialSlice = createSlice({
 
       .addCase(likePost.fulfilled, (state, action) => {
         state.posts = state.posts.map((p) =>
-          p.id === action.payload.id ? { ...p, likedBy: action.payload.likedBy } : p
+          p.id === action.payload.id ? { ...p, likedBy: action.payload.likedBy } : p,
         )
       })
 
@@ -272,7 +272,7 @@ const socialSlice = createSlice({
 
         // Keep the count on the post card in step with the new comment.
         state.posts = state.posts.map((p) =>
-          p.id === postId ? { ...p, commentCount: (p.commentCount ?? 0) + 1 } : p
+          p.id === postId ? { ...p, commentCount: (p.commentCount ?? 0) + 1 } : p,
         )
       })
       .addCase(addComment.rejected, (state, action) => {

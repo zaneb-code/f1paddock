@@ -10,7 +10,7 @@
  */
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import * as db from '../../api/mockDb'
+import * as db from '../../api/social'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
@@ -24,7 +24,7 @@ export const loadMyProfile = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const saveProfile = createAsyncThunk(
@@ -35,7 +35,7 @@ export const saveProfile = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const loadFans = createAsyncThunk('profile/loadFans', async (_, { rejectWithValue }) => {
@@ -54,7 +54,7 @@ export const loadSimilarFans = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const loadPublicProfile = createAsyncThunk(
@@ -67,7 +67,7 @@ export const loadPublicProfile = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const followUser = createAsyncThunk(
@@ -78,7 +78,7 @@ export const followUser = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 /** Follow a driver or a team — the "follow favourite drivers/teams" requirement. */
@@ -90,7 +90,7 @@ export const followEntity = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 const initialState = {
