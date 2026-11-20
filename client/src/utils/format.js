@@ -147,41 +147,10 @@ export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 export const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
 /**
- * Validates the signup form. Returns an object of messages keyed by field —
- * an empty object means valid. The server runs the same rules again, because
- * client-side validation is a convenience, never a security control.
+ * Form validation moved to utils/validate.js in Phase 2, so the client and
+ * the server describe the same rules in the same vocabulary and the limits
+ * cannot drift apart. Import validateRegister and validateLogin from there.
  */
-export function validateRegister({ email, username, password, confirmPassword }) {
-  const errors = {}
-
-  if (!email?.trim()) errors.email = 'Enter your email address.'
-  else if (!EMAIL_RE.test(email)) errors.email = 'That does not look like a valid email.'
-
-  if (!username?.trim()) errors.username = 'Choose a username.'
-  else if (!USERNAME_RE.test(username)) {
-    errors.username = '3-20 characters: letters, numbers or underscores only.'
-  }
-
-  if (!password) errors.password = 'Choose a password.'
-  else if (password.length < 8) errors.password = 'At least 8 characters.'
-
-  if (confirmPassword !== undefined && password !== confirmPassword) {
-    errors.confirmPassword = 'Passwords do not match.'
-  }
-
-  return errors
-}
-
-export function validateLogin({ email, password }) {
-  const errors = {}
-
-  if (!email?.trim()) errors.email = 'Enter your email address.'
-  else if (!EMAIL_RE.test(email)) errors.email = 'That does not look like a valid email.'
-
-  if (!password) errors.password = 'Enter your password.'
-
-  return errors
-}
 
 /** Rough password strength, 0-5, for the signup meter. */
 export function passwordStrength(password = '') {

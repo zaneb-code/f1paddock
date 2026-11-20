@@ -18,6 +18,7 @@ import {
   selectSocialNotice,
 } from '../store/slices/socialSlice'
 import { selectUser } from '../store/slices/authSlice'
+import { schemas, validateForm, LIMITS } from '../utils/validate'
 
 const TABS = [
   { id: 'all', label: 'All' },
@@ -40,6 +41,7 @@ export default function Communities() {
   const [query, setQuery] = useState('')
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState({ name: '', description: '' })
+  const [fieldErrors, setFieldErrors] = useState({})
 
   useEffect(() => {
     if (status === 'idle') dispatch(loadCommunities())
@@ -55,7 +57,7 @@ export default function Communities() {
       const needle = query.toLowerCase()
       list = list.filter(
         (c) =>
-          c.name.toLowerCase().includes(needle) || c.description.toLowerCase().includes(needle)
+          c.name.toLowerCase().includes(needle) || c.description.toLowerCase().includes(needle),
       )
     }
 
@@ -64,15 +66,29 @@ export default function Communities() {
 
   async function handleCreate(event) {
     event.preventDefault()
-    if (!draft.name.trim() || !user) return
+    if (!user) return
+
+    // Level 1: the same rules the server and the schema enforce.
+    const { ok, errors } = validateForm(schemas.community, { ...draft, type: 'general' })
+    if (!ok) {
+      setFieldErrors(errors)
+      return
+    }
+    setFieldErrors({})
 
     const result = await dispatch(
-      createCommunity({ ...draft, type: 'general', creatorId: user.id })
+      createCommunity({ ...draft, type: 'general', creatorId: user.id }),
     )
 
     if (result.meta.requestStatus === 'fulfilled') {
       setCreating(false)
       setDraft({ name: '', description: '' })
+      setFieldErrors({})
+    } else {
+      // Level 2: the server's reply is keyed by field in the same way.
+      setFieldErrors(
+        result.payload?.fields ?? { name: result.payload?.error ?? 'Could not create that.' },
+      )
     }
   }
 
@@ -163,32 +179,36 @@ export default function Communities() {
             <button className="btn btn-ghost" onClick={() => setCreating(false)}>
               Cancel
             </button>
-            <button className="btn btn-primary" onClick={handleCreate} disabled={!draft.name.trim()}>
+            <button
+              className="btn btn-primary"
+              onClick={handleCreate}
+              disabled={!draft.name.trim()}
+            >
               Create
             </button>
           </>
         }
       >
         <form onSubmit={handleCreate}>
-          <Field label="Name" htmlFor="c-name">
+          <Field label="Name" htmlFor="c-name" error={fieldErrors.name}>
             <input
               id="c-name"
               className="input"
               placeholder="Wet weather masters"
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              maxLength={50}
+              maxLength={LIMITS.communityName.max}
             />
           </Field>
 
-          <Field label="What is it for?" htmlFor="c-desc">
+          <Field label="What is it for?" htmlFor="c-desc" error={fieldErrors.description}>
             <textarea
               id="c-desc"
               className="input min-h-[88px] resize-y"
               placeholder="A sentence or two so people know what belongs here."
               value={draft.description}
               onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-              maxLength={240}
+              maxLength={LIMITS.communityDescription.max}
             />
           </Field>
         </form>

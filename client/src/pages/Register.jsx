@@ -14,7 +14,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { Field, Notice, Spinner } from '../components/ui'
-import { validateRegister, passwordStrength } from '../utils/format'
+import { passwordStrength } from '../utils/format'
+import { validateRegister } from '../utils/validate'
 import {
   register,
   verifyEmail,
@@ -137,7 +138,11 @@ export default function Register() {
             />
           </Field>
 
-          <Field label="Password" htmlFor="password" error={errors.password ?? fieldErrors?.password}>
+          <Field
+            label="Password"
+            htmlFor="password"
+            error={errors.password ?? fieldErrors?.password}
+          >
             <input
               id="password"
               name="password"
@@ -254,8 +259,8 @@ function VerifyStep({ email, busy, error, notice, delivery, onVerify, onResend, 
         <p className="eyebrow mb-2">Step 2 of 2</p>
         <h1 className="mb-1 text-3xl">Check your email</h1>
         <p className="mb-6 text-sm text-muted">
-          We sent a six-digit code to <span className="text-chalk">{email}</span>. It expires in
-          ten minutes.
+          We sent a six-digit code to <span className="text-chalk">{email}</span>. It expires in ten
+          minutes.
         </p>
 
         {delivery?.mode === 'console' && (

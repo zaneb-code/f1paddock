@@ -25,10 +25,18 @@ export function DriverChip({ driver, constructorId, selected = false, onClick, s
           ? 'border-transparent text-chalk'
           : 'border-line bg-surface-2 text-muted hover:border-line-strong hover:text-chalk'
       } ${interactive ? 'cursor-pointer' : ''}`}
-      style={selected ? { backgroundColor: teamTint(constructorId, 0.25), borderColor: colour } : undefined}
+      style={
+        selected
+          ? { backgroundColor: teamTint(constructorId, 0.25), borderColor: colour }
+          : undefined
+      }
       aria-pressed={interactive ? selected : undefined}
     >
-      <span className="h-3.5 w-1 rounded-full" style={{ backgroundColor: colour }} aria-hidden="true" />
+      <span
+        className="h-3.5 w-1 rounded-full"
+        style={{ backgroundColor: colour }}
+        aria-hidden="true"
+      />
       {driver.code && <span className="font-mono text-[0.7rem] text-dim">{driver.code}</span>}
       <span>{driver.fullName ?? `${driver.givenName} ${driver.familyName}`}</span>
     </Element>
@@ -55,10 +63,16 @@ export function TeamChip({ team, selected = false, onClick, size = 'md' }) {
           ? 'border-transparent text-chalk'
           : 'border-line bg-surface-2 text-muted hover:border-line-strong hover:text-chalk'
       } ${interactive ? 'cursor-pointer' : ''}`}
-      style={selected ? { backgroundColor: teamTint(team.id, 0.25), borderColor: colour } : undefined}
+      style={
+        selected ? { backgroundColor: teamTint(team.id, 0.25), borderColor: colour } : undefined
+      }
       aria-pressed={interactive ? selected : undefined}
     >
-      <span className="h-3.5 w-1 rounded-full" style={{ backgroundColor: colour }} aria-hidden="true" />
+      <span
+        className="h-3.5 w-1 rounded-full"
+        style={{ backgroundColor: colour }}
+        aria-hidden="true"
+      />
       {team.name}
     </Element>
   )

@@ -136,7 +136,9 @@ export function Avatar({ name = '', size = 'md', className = '' }) {
   return (
     <span
       className={`grid shrink-0 place-items-center rounded-full font-display font-bold text-ink ${sizes[size]} ${className}`}
-      style={{ background: `linear-gradient(140deg, hsl(${hue} 70% 62%), hsl(${(hue + 50) % 360} 70% 48%))` }}
+      style={{
+        background: `linear-gradient(140deg, hsl(${hue} 70% 62%), hsl(${(hue + 50) % 360} 70% 48%))`,
+      }}
       aria-hidden="true"
     >
       {initials(name)}

@@ -15,7 +15,11 @@ import { formatSessionDay, formatSessionTime, pluralise } from '../../utils/form
 
 export function CommunityCard({ community, isMember, onToggleMember, canJoin }) {
   const accent =
-    community.type === 'team' ? teamColour(community.refId) : community.type === 'driver' ? '#FF2D20' : '#71717A'
+    community.type === 'team'
+      ? teamColour(community.refId)
+      : community.type === 'driver'
+        ? '#FF2D20'
+        : '#71717A'
 
   return (
     <div className="card card-hover flex flex-col overflow-hidden">
@@ -28,7 +32,10 @@ export function CommunityCard({ community, isMember, onToggleMember, canJoin }) 
         </div>
 
         <h3 className="mb-1.5 text-xl">
-          <Link to={`/communities/${community.slug}`} className="transition-colors hover:text-accent">
+          <Link
+            to={`/communities/${community.slug}`}
+            className="transition-colors hover:text-accent"
+          >
             {community.name}
           </Link>
         </h3>

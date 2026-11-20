@@ -9,7 +9,7 @@
  */
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import * as db from '../../api/mockDb'
+import * as db from '../../api/social'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
@@ -38,7 +38,7 @@ export const toggleAttendance = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 const initialState = {

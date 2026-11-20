@@ -1,105 +1,56 @@
 /**
- * Client for our own Express server.
+ * Client for our own Express server: authentication and the AI prediction.
  *
- * Only two things live here, because only two things genuinely need a server:
- *   - authentication (JWT signing, and emailing the verification code)
- *   - the AI prediction (the API key must never reach the browser)
+ * WHAT CHANGED IN PHASE 2
  *
- * Vite proxies /api to http://localhost:4000 in development, so these are
- * all relative URLs and there is no CORS handling to do.
+ * Phase 1 kept the JWT in localStorage and attached it as an
+ * `Authorization: Bearer` header. Any successful XSS can read localStorage,
+ * so one injected script was one stolen session.
+ *
+ * The token now lives in an httpOnly cookie the browser attaches by itself.
+ * JavaScript — ours and an attacker's alike — cannot read it. That is why
+ * there is no getToken/setToken in this file any more: there is nothing for
+ * the client to hold. The cookie is paired with a CSRF token, because a
+ * cookie the browser sends automatically is a cookie another site can cause
+ * to be sent; http.js handles that side.
  */
 
-const TOKEN_KEY = 'f1p_token'
+import { request, ApiError, forgetCsrfToken } from './http.js'
 
-export function getToken() {
-  try {
-    return localStorage.getItem(TOKEN_KEY)
-  } catch {
-    return null
-  }
-}
-
-export function setToken(token) {
-  try {
-    if (token) localStorage.setItem(TOKEN_KEY, token)
-    else localStorage.removeItem(TOKEN_KEY)
-  } catch {
-    /* private browsing — the app still works, just not across refreshes */
-  }
-}
-
-/**
- * One error type so callers can read `error.fields` for per-input messages
- * without checking whether the response happened to include them.
- */
-export class ApiError extends Error {
-  constructor(message, { status, fields, reason, ...rest } = {}) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-    this.fields = fields ?? null
-    this.reason = reason ?? null
-    Object.assign(this, rest)
-  }
-}
-
-async function request(path, { method = 'GET', body, auth = false } = {}) {
-  const headers = {}
-  if (body) headers['Content-Type'] = 'application/json'
-
-  if (auth) {
-    const token = getToken()
-    if (token) headers.Authorization = `Bearer ${token}`
-  }
-
-  let response
-  try {
-    response = await fetch(`/api${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    })
-  } catch {
-    // fetch only rejects when the request never reached a server.
-    throw new ApiError(
-      'Cannot reach the F1Paddock server. Is it running on port 4000?',
-      { status: 0 }
-    )
-  }
-
-  const text = await response.text()
-  const data = text ? safeJson(text) : null
-
-  if (!response.ok) {
-    throw new ApiError(data?.error ?? `Request failed (${response.status})`, {
-      status: response.status,
-      fields: data?.fields,
-      reason: data?.reason,
-      ...(data ?? {}),
-    })
-  }
-
-  return data
-}
-
-function safeJson(text) {
-  try {
-    return JSON.parse(text)
-  } catch {
-    return null
-  }
-}
+export { ApiError }
 
 /* ------------------------------------------------------------------
  *  Auth
  * ------------------------------------------------------------------ */
 
 export const auth = {
-  register: (payload) => request('/auth/register', { method: 'POST', body: payload }),
-  verify: (payload) => request('/auth/verify', { method: 'POST', body: payload }),
-  resend: (email) => request('/auth/resend', { method: 'POST', body: { email } }),
-  login: (payload) => request('/auth/login', { method: 'POST', body: payload }),
-  me: () => request('/auth/me', { auth: true }),
+  register: (payload) => request.post('/auth/register', payload),
+  verify: (payload) => request.post('/auth/verify', payload),
+  resend: (email) => request.post('/auth/resend', { email }),
+  login: (payload) => request.post('/auth/login', payload),
+
+  /**
+   * Who am I? Answers { user: null } rather than throwing when nobody is
+   * logged in, because "no session" is the normal state for a visitor, not
+   * an error the UI should show.
+   */
+  async me() {
+    try {
+      return await request.get('/auth/me')
+    } catch (error) {
+      if (error.status === 401) return { user: null }
+      throw error
+    }
+  },
+
+  async logout() {
+    const result = await request.post('/auth/logout')
+    // The next session should get a CSRF token of its own.
+    forgetCsrfToken()
+    return result
+  },
+
+  changePassword: (payload) => request.patch('/auth/password', payload),
 }
 
 /* ------------------------------------------------------------------
@@ -107,8 +58,8 @@ export const auth = {
  * ------------------------------------------------------------------ */
 
 export const ai = {
-  status: () => request('/ai/status'),
-  predict: (context) => request('/ai/predict', { method: 'POST', body: context, auth: true }),
+  status: () => request.get('/ai/status'),
+  predict: (context) => request.post('/ai/predict', context),
 }
 
-export const health = () => request('/health')
+export const health = () => request.get('/health')

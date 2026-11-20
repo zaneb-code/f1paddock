@@ -13,7 +13,7 @@
  */
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import * as db from '../../api/mockDb'
+import * as db from '../../api/social'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
@@ -29,16 +29,19 @@ export const reportContent = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
-export const loadReports = createAsyncThunk('moderation/loadReports', async (_, { rejectWithValue }) => {
-  try {
-    return await db.listReports()
-  } catch (error) {
-    return reject(error, rejectWithValue)
-  }
-})
+export const loadReports = createAsyncThunk(
+  'moderation/loadReports',
+  async (_, { rejectWithValue }) => {
+    try {
+      return await db.listReports()
+    } catch (error) {
+      return reject(error, rejectWithValue)
+    }
+  },
+)
 
 export const resolveReport = createAsyncThunk(
   'moderation/resolve',
@@ -48,7 +51,7 @@ export const resolveReport = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 const initialState = {
@@ -91,7 +94,7 @@ const moderationSlice = createSlice({
 
       .addCase(resolveReport.fulfilled, (state, action) => {
         state.reports = state.reports.map((r) =>
-          r.id === action.payload.id ? { ...r, ...action.payload } : r
+          r.id === action.payload.id ? { ...r, ...action.payload } : r,
         )
         state.notice =
           action.payload.status === 'actioned' ? 'Content hidden.' : 'Report dismissed.'
@@ -103,7 +106,8 @@ export const { clearModerationMessages } = moderationSlice.actions
 
 /* ---------- Selectors ---------- */
 export const selectReports = (state) => state.moderation.reports
-export const selectOpenReports = (state) => state.moderation.reports.filter((r) => r.status === 'open')
+export const selectOpenReports = (state) =>
+  state.moderation.reports.filter((r) => r.status === 'open')
 export const selectModerationStatus = (state) => state.moderation.status
 export const selectModerationError = (state) => state.moderation.error
 export const selectModerationNotice = (state) => state.moderation.notice

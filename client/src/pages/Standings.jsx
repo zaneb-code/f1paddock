@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { PageHeading, Loading, ErrorState, Tabs, SectionHeading } from '../components/ui'
-import { DriverStandingsTable, ConstructorStandingsTable } from '../components/f1/StandingsTable'
+import { DriverStandingsTable, ConstructorStandingsCards } from '../components/f1/StandingsTable'
 import { DriverChip, TeamChip } from '../components/f1/DriverChip'
 
 import {
@@ -77,10 +77,7 @@ export default function Standings() {
           {tab === 'drivers' ? (
             <DriverStandingsTable standings={drivers} highlightDriverIds={followedDrivers} />
           ) : (
-            <ConstructorStandingsTable
-              standings={constructors}
-              highlightTeamIds={followedTeams}
-            />
+            <ConstructorStandingsCards standings={constructors} highlightTeamIds={followedTeams} />
           )}
 
           {user && (

@@ -6,7 +6,15 @@ import { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { Loading, ErrorState, EmptyState, Avatar, Tag, SectionHeading, SkeletonList } from '../components/ui'
+import {
+  Loading,
+  ErrorState,
+  EmptyState,
+  Avatar,
+  Tag,
+  SectionHeading,
+  SkeletonList,
+} from '../components/ui'
 import PostCard from '../components/social/PostCard'
 import {
   loadPublicProfile,

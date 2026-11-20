@@ -13,7 +13,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { Field, Notice, Spinner } from '../components/ui'
-import { validateLogin } from '../utils/format'
+import { validateLogin } from '../utils/validate'
 import {
   login,
   clearAuthMessages,

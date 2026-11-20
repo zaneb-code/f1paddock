@@ -7,8 +7,7 @@ export default function Footer() {
         <div className="max-w-sm">
           <p className="mb-2 font-display text-xl font-bold">F1Paddock</p>
           <p className="text-sm text-muted">
-            A social platform for Formula 1 fans. Built as a semester project for Web
-            Programming.
+            A social platform for Formula 1 fans. Built as a semester project for Web Programming.
           </p>
         </div>
 
@@ -38,8 +37,8 @@ export default function Footer() {
             Jolpica-F1 API
           </a>
           <p className="mt-1 max-w-[16rem] text-xs text-dim">
-            Race data from the open Jolpica API, the community successor to Ergast.
-            Not affiliated with Formula 1.
+            Race data from the open Jolpica API, the community successor to Ergast. Not affiliated
+            with Formula 1.
           </p>
         </div>
       </div>

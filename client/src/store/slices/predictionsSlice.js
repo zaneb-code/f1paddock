@@ -15,7 +15,7 @@
  */
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import * as db from '../../api/mockDb'
+import * as db from '../../api/social'
 import { ai } from '../../api/backend'
 import { fetchRecentForm } from '../../api/jolpica'
 
@@ -32,7 +32,7 @@ export const loadMyPredictions = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const loadRacePredictions = createAsyncThunk(
@@ -43,7 +43,7 @@ export const loadRacePredictions = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const submitPrediction = createAsyncThunk(
@@ -54,7 +54,7 @@ export const submitPrediction = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 /**
@@ -72,7 +72,7 @@ export const scoreMyPrediction = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const loadLeaderboard = createAsyncThunk(
@@ -83,7 +83,7 @@ export const loadLeaderboard = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 /* ---------- AI prediction ---------- */
@@ -96,7 +96,7 @@ export const loadAiStatus = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 /**
@@ -135,7 +135,7 @@ export const requestAiPrediction = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 const initialState = {
@@ -263,7 +263,7 @@ export const selectPredictionNotice = (state) => state.predictions.notice
 /** My prediction for one specific race, if I made one. */
 export const selectMyPredictionFor = (season, round) => (state) =>
   state.predictions.myPredictions.find(
-    (p) => String(p.season) === String(season) && Number(p.round) === Number(round)
+    (p) => String(p.season) === String(season) && Number(p.round) === Number(round),
   ) ?? null
 
 /** Total points across every scored prediction — shown on the dashboard. */

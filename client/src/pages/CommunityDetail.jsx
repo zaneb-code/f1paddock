@@ -73,7 +73,11 @@ export default function CommunityDetail() {
       </Link>
 
       <header className="card mb-8 overflow-hidden">
-        <span className="block h-1.5 w-full" style={{ backgroundColor: accent }} aria-hidden="true" />
+        <span
+          className="block h-1.5 w-full"
+          style={{ backgroundColor: accent }}
+          aria-hidden="true"
+        />
 
         <div className="flex flex-wrap items-start justify-between gap-4 p-6">
           <div className="max-w-2xl">
@@ -89,7 +93,9 @@ export default function CommunityDetail() {
           {user && (
             <button
               className={`btn ${isMember ? 'btn-ghost' : 'btn-primary'}`}
-              onClick={() => dispatch(joinCommunity({ communityId: community.id, userId: user.id }))}
+              onClick={() =>
+                dispatch(joinCommunity({ communityId: community.id, userId: user.id }))
+              }
             >
               {isMember ? 'Leave' : 'Join'}
             </button>
@@ -98,10 +104,7 @@ export default function CommunityDetail() {
       </header>
 
       <div className="mb-5">
-        <PostComposer
-          communityId={community.id}
-          placeholder={`Post in ${community.name}…`}
-        />
+        <PostComposer communityId={community.id} placeholder={`Post in ${community.name}…`} />
       </div>
 
       {postsStatus === 'loading' ? (

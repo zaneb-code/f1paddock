@@ -207,11 +207,19 @@ export default function RaceDetail() {
             <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="border-b border-line bg-surface-2 text-left">
-                  <th className="w-14 px-3 py-2.5 text-xs tracking-widest text-dim uppercase">Pos</th>
+                  <th className="w-14 px-3 py-2.5 text-xs tracking-widest text-dim uppercase">
+                    Pos
+                  </th>
                   <th className="px-3 py-2.5 text-xs tracking-widest text-dim uppercase">Driver</th>
-                  <th className="px-3 py-2.5 text-right text-xs tracking-widest text-dim uppercase">Q1</th>
-                  <th className="px-3 py-2.5 text-right text-xs tracking-widest text-dim uppercase">Q2</th>
-                  <th className="px-3 py-2.5 text-right text-xs tracking-widest text-dim uppercase">Q3</th>
+                  <th className="px-3 py-2.5 text-right text-xs tracking-widest text-dim uppercase">
+                    Q1
+                  </th>
+                  <th className="px-3 py-2.5 text-right text-xs tracking-widest text-dim uppercase">
+                    Q2
+                  </th>
+                  <th className="px-3 py-2.5 text-right text-xs tracking-widest text-dim uppercase">
+                    Q3
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -228,9 +236,15 @@ export default function RaceDetail() {
                       <span className="text-chalk">{row.driver.fullName}</span>
                       <span className="block text-xs text-dim">{row.constructor.name}</span>
                     </td>
-                    <td className="px-3 py-3 text-right font-mono text-xs text-muted">{row.q1 ?? '—'}</td>
-                    <td className="px-3 py-3 text-right font-mono text-xs text-muted">{row.q2 ?? '—'}</td>
-                    <td className="px-3 py-3 text-right font-mono text-xs text-chalk">{row.q3 ?? '—'}</td>
+                    <td className="px-3 py-3 text-right font-mono text-xs text-muted">
+                      {row.q1 ?? '—'}
+                    </td>
+                    <td className="px-3 py-3 text-right font-mono text-xs text-muted">
+                      {row.q2 ?? '—'}
+                    </td>
+                    <td className="px-3 py-3 text-right font-mono text-xs text-chalk">
+                      {row.q3 ?? '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -28,7 +28,9 @@ function buildPrompt(context) {
 
   const standingsText = standings
     .slice(0, 12)
-    .map((s) => `${s.position}. ${s.driverName} (${s.constructor}) — ${s.points} pts, ${s.wins} wins`)
+    .map(
+      (s) => `${s.position}. ${s.driverName} (${s.constructor}) — ${s.points} pts, ${s.wins} wins`,
+    )
     .join('\n')
 
   const formText = recentForm.length
@@ -153,7 +155,7 @@ async function callGemini(prompt) {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.7, responseMimeType: 'application/json' },
       }),
-    }
+    },
   )
 
   if (!response.ok) throw new Error(`Gemini returned ${response.status}: ${await response.text()}`)
@@ -203,7 +205,8 @@ async function callAnthropic(prompt) {
     }),
   })
 
-  if (!response.ok) throw new Error(`Anthropic returned ${response.status}: ${await response.text()}`)
+  if (!response.ok)
+    throw new Error(`Anthropic returned ${response.status}: ${await response.text()}`)
 
   const data = await response.json()
   return { text: data.content?.[0]?.text ?? '', model }

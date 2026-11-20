@@ -108,7 +108,7 @@ export function PredictionForm({ race, standings, existing, locked }) {
         raceName: race.raceName,
         podium,
         poleDriverId: pole,
-      })
+      }),
     )
     setBusy(false)
 
@@ -123,8 +123,8 @@ export function PredictionForm({ race, standings, existing, locked }) {
     <form onSubmit={handleSubmit} className="card p-5">
       <h3 className="mb-1 text-xl">Your podium</h3>
       <p className="mb-4 text-sm text-muted">
-        Tap a position, then pick the driver. 10 points for an exact placing, 4 for the right
-        driver in the wrong slot, 5 for pole.
+        Tap a position, then pick the driver. 10 points for an exact placing, 4 for the right driver
+        in the wrong slot, 5 for pole.
       </p>
 
       {/* The three slots */}
@@ -139,7 +139,9 @@ export function PredictionForm({ race, standings, existing, locked }) {
               type="button"
               onClick={() => setSlot(index)}
               className={`rounded-xl border-2 px-3 py-3 text-center transition-all ${
-                slot === index ? 'border-accent bg-accent/10' : 'border-line bg-surface-2 hover:border-line-strong'
+                slot === index
+                  ? 'border-accent bg-accent/10'
+                  : 'border-line bg-surface-2 hover:border-line-strong'
               }`}
             >
               <span className="eyebrow block">{label}</span>
@@ -178,7 +180,11 @@ export function PredictionForm({ race, standings, existing, locked }) {
 
       {/* Pole bonus */}
       <p className="eyebrow mb-2">Pole position (optional, +5)</p>
-      <select className="input mb-4" value={pole ?? ''} onChange={(e) => setPole(e.target.value || null)}>
+      <select
+        className="input mb-4"
+        value={pole ?? ''}
+        onChange={(e) => setPole(e.target.value || null)}
+      >
         <option value="">No pole prediction</option>
         {standings.map((row) => (
           <option key={row.driver.driverId} value={row.driver.driverId}>
@@ -243,8 +249,8 @@ export function AiPredictionPanel({ race, standings }) {
         {!prediction && !loading && (
           <>
             <p className="mb-4 text-sm text-muted">
-              Generate a prediction and see how it compares with yours. It is given the
-              championship standings and the podiums from the last three rounds.
+              Generate a prediction and see how it compares with yours. It is given the championship
+              standings and the podiums from the last three rounds.
             </p>
             <button
               type="button"
@@ -302,8 +308,8 @@ export function AiPredictionPanel({ race, standings }) {
 
             {prediction.fallbackFrom && (
               <p className="mb-3 rounded-lg bg-flag/10 px-3 py-2 text-xs text-flag">
-                The {prediction.fallbackFrom} provider failed, so this is the fallback
-                calculation rather than a model's answer.
+                The {prediction.fallbackFrom} provider failed, so this is the fallback calculation
+                rather than a model's answer.
               </p>
             )}
 
@@ -355,9 +361,15 @@ export function PredictionComparison({ mine, ai, standings }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line bg-surface-2">
-              <th className="px-3 py-2 text-left text-xs tracking-widest text-dim uppercase">Pos</th>
-              <th className="px-3 py-2 text-left text-xs tracking-widest text-dim uppercase">You</th>
-              <th className="px-3 py-2 text-left text-xs tracking-widest text-dim uppercase">Machine</th>
+              <th className="px-3 py-2 text-left text-xs tracking-widest text-dim uppercase">
+                Pos
+              </th>
+              <th className="px-3 py-2 text-left text-xs tracking-widest text-dim uppercase">
+                You
+              </th>
+              <th className="px-3 py-2 text-left text-xs tracking-widest text-dim uppercase">
+                Machine
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -400,8 +412,12 @@ export function LeaderboardTable({ rows, currentUserId }) {
           <tr className="border-b border-line bg-surface-2 text-left">
             <th className="w-16 px-4 py-3 text-xs tracking-widest text-dim uppercase">Rank</th>
             <th className="px-4 py-3 text-xs tracking-widest text-dim uppercase">Fan</th>
-            <th className="w-24 px-4 py-3 text-right text-xs tracking-widest text-dim uppercase">Races</th>
-            <th className="w-24 px-4 py-3 text-right text-xs tracking-widest text-dim uppercase">Points</th>
+            <th className="w-24 px-4 py-3 text-right text-xs tracking-widest text-dim uppercase">
+              Races
+            </th>
+            <th className="w-24 px-4 py-3 text-right text-xs tracking-widest text-dim uppercase">
+              Points
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -434,7 +450,9 @@ export function LeaderboardTable({ rows, currentUserId }) {
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-muted tabular-nums">{row.scored}</td>
+                <td className="px-4 py-3 text-right font-mono text-muted tabular-nums">
+                  {row.scored}
+                </td>
                 <td className="px-4 py-3 text-right font-mono font-bold text-chalk tabular-nums">
                   {row.points}
                 </td>

@@ -5,15 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "node test/suite.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
+    "express-rate-limit": "^8.7.4",
     "f1paddock": "file:..",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^10.3.1"
+    "mongoose": "^9.12.1",
+    "nodemailer": "^10.3.1",
+    "sanitize-html": "^2.18.2"
   }
 }

@@ -15,12 +15,17 @@
  */
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { auth, setToken, getToken, ApiError } from '../../api/backend'
+import { auth, ApiError } from '../../api/backend'
 
 /** Shared error unwrapping, so every rejected action carries the same shape. */
 function toRejection(error) {
   if (error instanceof ApiError) {
-    return { message: error.message, fields: error.fields, reason: error.reason, status: error.status }
+    return {
+      message: error.message,
+      fields: error.fields,
+      reason: error.reason,
+      status: error.status,
+    }
   }
   return { message: error?.message ?? 'Something went wrong.', fields: null, reason: null }
 }
@@ -33,21 +38,27 @@ export const register = createAsyncThunk('auth/register', async (payload, { reje
   }
 })
 
-export const verifyEmail = createAsyncThunk('auth/verifyEmail', async (payload, { rejectWithValue }) => {
-  try {
-    return await auth.verify(payload)
-  } catch (error) {
-    return rejectWithValue(toRejection(error))
-  }
-})
+export const verifyEmail = createAsyncThunk(
+  'auth/verifyEmail',
+  async (payload, { rejectWithValue }) => {
+    try {
+      return await auth.verify(payload)
+    } catch (error) {
+      return rejectWithValue(toRejection(error))
+    }
+  },
+)
 
-export const resendCode = createAsyncThunk('auth/resendCode', async (email, { rejectWithValue }) => {
-  try {
-    return await auth.resend(email)
-  } catch (error) {
-    return rejectWithValue(toRejection(error))
-  }
-})
+export const resendCode = createAsyncThunk(
+  'auth/resendCode',
+  async (email, { rejectWithValue }) => {
+    try {
+      return await auth.resend(email)
+    } catch (error) {
+      return rejectWithValue(toRejection(error))
+    }
+  },
+)
 
 export const login = createAsyncThunk('auth/login', async (payload, { rejectWithValue }) => {
   try {
@@ -58,18 +69,35 @@ export const login = createAsyncThunk('auth/login', async (payload, { rejectWith
 })
 
 /**
- * Called once when the app starts. If a token is in localStorage we ask the
- * server who it belongs to — which also proves the token has not expired.
+ * Called once when the app starts, to ask the server who we are.
+ *
+ * In Phase 1 this checked localStorage for a token first and skipped the
+ * request if there was none. There is nothing to check now — the session is
+ * an httpOnly cookie that this code cannot read. Only the server can say
+ * whether we are logged in, so we always ask. It answers { user: null } for
+ * a visitor, which is not an error.
  */
 export const loadSession = createAsyncThunk('auth/loadSession', async (_, { rejectWithValue }) => {
-  if (!getToken()) return { user: null }
-
   try {
     return await auth.me()
   } catch (error) {
-    setToken(null) // expired or tampered with — drop it
     return rejectWithValue(toRejection(error))
   }
+})
+
+/**
+ * Logging out has to reach the server now: the cookie is httpOnly, so the
+ * only way to clear it is to ask the server to send an expired one back.
+ * Phase 1 could simply delete a localStorage key.
+ */
+export const logoutUser = createAsyncThunk('auth/logout', async () => {
+  try {
+    await auth.logout()
+  } catch {
+    // Even if the request fails, clear the local state — the user asked to
+    // leave, and the cookie expires on its own.
+  }
+  return true
 })
 
 const initialState = {
@@ -95,7 +123,6 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     logout(state) {
-      setToken(null)
       state.user = null
       state.isAuthenticated = false
       state.status = 'idle'
@@ -147,13 +174,23 @@ const authSlice = createSlice({
         state.fieldErrors = action.payload?.fields ?? null
       })
 
+      // ---- logout ----
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null
+        state.isAuthenticated = false
+        state.status = 'idle'
+        state.error = null
+        state.fieldErrors = null
+        state.verificationStage = 'none'
+        state.pendingEmail = null
+      })
+
       // ---- verify ----
       .addCase(verifyEmail.pending, (state) => {
         state.status = 'loading'
         state.error = null
       })
       .addCase(verifyEmail.fulfilled, (state, action) => {
-        setToken(action.payload.token)
         state.status = 'succeeded'
         state.user = action.payload.user
         state.isAuthenticated = true
@@ -183,7 +220,6 @@ const authSlice = createSlice({
         state.fieldErrors = null
       })
       .addCase(login.fulfilled, (state, action) => {
-        setToken(action.payload.token)
         state.status = 'succeeded'
         state.user = action.payload.user
         state.isAuthenticated = true
@@ -219,7 +255,8 @@ const authSlice = createSlice({
   },
 })
 
-export const { logout, clearAuthMessages, cancelVerification, startVerification } = authSlice.actions
+export const { logout, clearAuthMessages, cancelVerification, startVerification } =
+  authSlice.actions
 
 /* ---------- Selectors ---------- */
 export const selectUser = (state) => state.auth.user

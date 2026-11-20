@@ -61,7 +61,7 @@ export default function PostCard({ post, showCommunity = true }) {
         targetId: post.id,
         reporterId: user.id,
         reason: 'Reported from the feed',
-      })
+      }),
     )
     setReported(true)
   }
@@ -85,7 +85,10 @@ export default function PostCard({ post, showCommunity = true }) {
           </div>
 
           {showCommunity && post.community && (
-            <Link to={`/communities/${post.community.slug}`} className="text-xs text-accent hover:underline">
+            <Link
+              to={`/communities/${post.community.slug}`}
+              className="text-xs text-accent hover:underline"
+            >
               {post.community.name}
             </Link>
           )}

@@ -105,12 +105,12 @@ export default function Admin() {
                       </span>
                       {report.target.hidden && <Tag tone="stop">Hidden</Tag>}
                     </div>
-                    <p className="text-sm whitespace-pre-line text-chalk/85">{report.target.body}</p>
+                    <p className="text-sm whitespace-pre-line text-chalk/85">
+                      {report.target.body}
+                    </p>
                   </div>
                 ) : (
-                  <p className="mb-4 text-sm text-dim">
-                    The reported content no longer exists.
-                  </p>
+                  <p className="mb-4 text-sm text-dim">The reported content no longer exists.</p>
                 )}
 
                 <p className="mb-4 text-sm text-muted">
@@ -122,7 +122,9 @@ export default function Admin() {
                   <div className="flex flex-wrap gap-2">
                     <button
                       className="btn btn-sm btn-danger"
-                      onClick={() => dispatch(resolveReport({ reportId: report.id, action: 'hide' }))}
+                      onClick={() =>
+                        dispatch(resolveReport({ reportId: report.id, action: 'hide' }))
+                      }
                     >
                       Hide content
                     </button>

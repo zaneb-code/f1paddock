@@ -29,7 +29,7 @@ export const fetchSchedule = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const fetchStandings = createAsyncThunk(
@@ -45,7 +45,7 @@ export const fetchStandings = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 export const fetchGrid = createAsyncThunk(
@@ -61,7 +61,7 @@ export const fetchGrid = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 /**
@@ -91,7 +91,7 @@ export const fetchRaceDetail = createAsyncThunk(
     } catch (error) {
       return reject(error, rejectWithValue)
     }
-  }
+  },
 )
 
 const initialState = {
@@ -233,15 +233,15 @@ export const selectRaceDetail = (round) => (state) => state.f1.raceDetail[Number
  */
 export const selectNextRace = (state) => {
   const now = Date.now()
-  return (
-    state.f1.races.find((race) => new Date(race.startsAt ?? race.date).getTime() > now) ?? null
-  )
+  return state.f1.races.find((race) => new Date(race.startsAt ?? race.date).getTime() > now) ?? null
 }
 
 /** The most recently completed race. */
 export const selectLastRace = (state) => {
   const now = Date.now()
-  const past = state.f1.races.filter((race) => new Date(race.startsAt ?? race.date).getTime() <= now)
+  const past = state.f1.races.filter(
+    (race) => new Date(race.startsAt ?? race.date).getTime() <= now,
+  )
   return past.length ? past[past.length - 1] : null
 }
 
