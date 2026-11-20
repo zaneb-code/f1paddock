@@ -8,8 +8,7 @@ Semester project for Web Programming — **Zainab Khalid**.
 
 > **Phase 2.** Everything now runs through a MongoDB-backed Express API, with
 > validation at three levels and the security practices from Lectures 23–25
-> applied throughout. `LECTURE_MAP.md` maps every lecture to the file that
-> uses it.
+> applied throughout.
 
 ---
 
