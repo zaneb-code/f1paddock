@@ -1,69 +1,66 @@
 /**
- * F1Paddock API server (Phase 1).
+ * Server start-up.
  *
- * Deliberately small. It exists for the two things a React app genuinely
- * cannot do on its own:
- *
- *   1. Issue and verify JWTs, and email a verification code — both need a
- *      secret that must never reach the browser.
- *   2. Call an LLM — same reason: the API key has to stay server-side.
- *
- * Everything else in Phase 1 (posts, communities, meetups, predictions) runs
- * in the client against a mock data layer, which Phase 2 replaces with real
- * routes here backed by MongoDB.
+ * app.js builds the Express app; this file connects to MongoDB and listens.
+ * Splitting them means a test can import the app without starting a server.
  */
 
 import 'dotenv/config'
-import express from 'express'
-import cors from 'cors'
 
-import authRoutes from './routes/auth.js'
-import aiRoutes from './routes/ai.js'
+import fs from 'node:fs'
+import http from 'node:http'
+import https from 'node:https'
+
+import app from './app.js'
+import { connectDB } from './config/db.js'
 import { mailMode } from './lib/mailer.js'
 import { aiProvider } from './ai/provider.js'
-import { debugSnapshot } from './lib/store.js'
 
-const app = express()
 const PORT = Number(process.env.PORT || 4000)
-
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || true }))
-app.use(express.json())
-
-// One line per request, so you can see what the client is doing.
-app.use((req, _res, next) => {
-  if (req.path !== '/api/health') console.log(`  ${req.method} ${req.path}`)
-  next()
-})
-
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, mailMode, aiProvider, uptimeSeconds: Math.round(process.uptime()) })
-})
-
-app.use('/api/auth', authRoutes)
-app.use('/api/ai', aiRoutes)
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
 
 /**
- * Development helper: shows the users and pending codes held in memory.
- * Useful when MAIL_MODE=console and you want to grab a code quickly.
- * Refuses to run in production.
+ * Local HTTPS, if a key and certificate are configured.
+ *
+ * In production the usual arrangement is the one from the lecture — nginx
+ * holds the certificate and forwards plain HTTP to this app on localhost, so
+ * Node never sees a key at all. This branch exists for trying HTTPS on your
+ * own machine with a self-signed certificate; the README has the one openssl
+ * command that makes one.
  */
-app.get('/api/_debug/state', (_req, res) => {
-  if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found' })
-  res.json(debugSnapshot())
-})
+function createServer() {
+  const keyPath = process.env.SSL_KEY_PATH
+  const certPath = process.env.SSL_CERT_PATH
 
-app.use((req, res) => {
-  res.status(404).json({ error: `No route for ${req.method} ${req.path}` })
-})
+  if (keyPath && certPath && fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+    const credentials = { key: fs.readFileSync(keyPath), cert: fs.readFileSync(certPath) }
+    return { server: https.createServer(credentials, app), scheme: 'https' }
+  }
 
-// Express 5 forwards async errors here automatically.
-app.use((error, _req, res, _next) => {
-  console.error('[server] unhandled:', error)
-  res.status(500).json({ error: 'Something went wrong on the server.' })
-})
+  return { server: http.createServer(app), scheme: 'http' }
+}
 
-app.listen(PORT, () => {
-  console.log(`\n  F1Paddock API  http://localhost:${PORT}`)
-  console.log(`  mail mode:     ${mailMode}`)
-  console.log(`  ai provider:   ${aiProvider}\n`)
-})
+async function start() {
+  try {
+    await connectDB()
+  } catch (error) {
+    // A server that is up but cannot reach its database answers every request
+    // with a 500 and looks like a bug in the code. Better to stop and say so.
+    console.error('\n  Could not connect to MongoDB.')
+    console.error(`  ${error.message}\n`)
+    console.error('  Is mongod running? Check MONGO_URI in server/.env.')
+    console.error('  The README has setup instructions for local MongoDB and Atlas.\n')
+    process.exit(1)
+  }
+
+  const { server, scheme } = createServer()
+
+  server.listen(PORT, () => {
+    console.log(`\n  F1Paddock API  ${scheme}://localhost:${PORT}`)
+    console.log(`  client origin: ${CLIENT_ORIGIN}`)
+    console.log(`  mail mode:     ${mailMode}`)
+    console.log(`  ai provider:   ${aiProvider}\n`)
+  })
+}
+
+start()
