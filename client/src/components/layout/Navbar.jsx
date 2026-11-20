@@ -10,7 +10,7 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { Avatar } from '../ui'
-import { logout, selectUser, selectIsAuthenticated } from '../../store/slices/authSlice'
+import { logoutUser, selectUser, selectIsAuthenticated } from '../../store/slices/authSlice'
 import { clearMyProfile } from '../../store/slices/profileSlice'
 import { selectIsModerator, selectOpenReports } from '../../store/slices/moderationSlice'
 
@@ -54,7 +54,7 @@ export default function Navbar() {
   useEffect(() => {
     if (loggingOut && location.pathname === '/') {
       setLoggingOut(false)
-      dispatch(logout())
+      dispatch(logoutUser())
       dispatch(clearMyProfile())
     }
   }, [loggingOut, location.pathname, dispatch])
@@ -69,9 +69,7 @@ export default function Navbar() {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent font-display text-lg font-bold text-white">
             F1
           </span>
-          <span className="font-display text-xl font-bold tracking-wide">
-            Paddock
-          </span>
+          <span className="font-display text-xl font-bold tracking-wide">Paddock</span>
         </Link>
 
         <button
@@ -97,7 +95,9 @@ export default function Navbar() {
                   end={link.end}
                   className={({ isActive }) =>
                     `block rounded-full px-3 py-2 font-display text-sm font-semibold tracking-wide uppercase transition-colors ${
-                      isActive ? 'bg-accent/15 text-accent-soft' : 'text-muted hover:bg-white/5 hover:text-chalk'
+                      isActive
+                        ? 'bg-accent/15 text-accent-soft'
+                        : 'text-muted hover:bg-white/5 hover:text-chalk'
                     }`
                   }
                 >
@@ -112,7 +112,9 @@ export default function Navbar() {
                   to="/admin"
                   className={({ isActive }) =>
                     `flex items-center gap-2 rounded-full px-3 py-2 font-display text-sm font-semibold tracking-wide uppercase transition-colors ${
-                      isActive ? 'bg-flag/15 text-flag' : 'text-muted hover:bg-white/5 hover:text-chalk'
+                      isActive
+                        ? 'bg-flag/15 text-flag'
+                        : 'text-muted hover:bg-white/5 hover:text-chalk'
                     }`
                   }
                 >

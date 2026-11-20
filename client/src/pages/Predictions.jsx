@@ -7,7 +7,15 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { PageHeading, Loading, EmptyState, Notice, SectionHeading, Tag, Stat } from '../components/ui'
+import {
+  PageHeading,
+  Loading,
+  EmptyState,
+  Notice,
+  SectionHeading,
+  Tag,
+  Stat,
+} from '../components/ui'
 import {
   PredictionForm,
   AiPredictionPanel,
@@ -203,7 +211,8 @@ export default function Predictions() {
                       {prediction.podium
                         .map(
                           (id) =>
-                            standings.find((s) => s.driver.driverId === id)?.driver.familyName ?? id
+                            standings.find((s) => s.driver.driverId === id)?.driver.familyName ??
+                            id,
                         )
                         .join(' › ')}
                     </p>
@@ -265,7 +274,7 @@ function ScoreButton({ prediction, season }) {
           predictionId: prediction.id,
           actualPodium: results.results.slice(0, 3).map((r) => r.driver.driverId),
           actualPole: qualifying?.[0]?.driver.driverId ?? null,
-        })
+        }),
       )
     }
 

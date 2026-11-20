@@ -201,3 +201,179 @@ h4 {
     scroll-behavior: auto !important;
   }
 }
+
+/* ==================================================================
+   Splash screen
+   ------------------------------------------------------------------
+   Shown once per page load, then faded out by Splash.jsx. All of the
+   motion lives here rather than in the component so that the
+   prefers-reduced-motion block at the top of this file switches it
+   off for free.
+   ================================================================== */
+
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes splash-sweep {
+  from {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(230%) skewX(-18deg);
+  }
+}
+
+@keyframes splash-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes splash-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background-color: var(--color-ink);
+  transition: opacity 650ms var(--ease-out-soft);
+}
+
+.splash[data-phase='out'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The photograph, dimmed so the wordmark stays the brightest thing */
+.splash__photo {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/car-smoke.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.42;
+  transform: scale(1.08);
+  animation: splash-rise 1400ms var(--ease-out-soft) both;
+}
+
+.splash__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 55% at 50% 52%, transparent 0%, rgba(10, 10, 12, 0.72) 70%),
+    linear-gradient(
+      to bottom,
+      rgba(10, 10, 12, 0.9),
+      rgba(10, 10, 12, 0.35) 45%,
+      rgba(10, 10, 12, 0.95)
+    );
+}
+
+/* A single light streak that crosses the mark once, like a car going past */
+.splash__streak {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 18%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  animation: splash-sweep 1500ms 450ms var(--ease-out-soft) both;
+}
+
+.splash__inner {
+  position: relative;
+  text-align: center;
+  padding: 0 1.5rem;
+}
+
+.splash__mark {
+  animation: splash-rise 900ms 120ms var(--ease-out-soft) both;
+}
+
+.splash__word {
+  animation: splash-rise 900ms 300ms var(--ease-out-soft) both;
+}
+
+.splash__tag {
+  animation: splash-rise 900ms 520ms var(--ease-out-soft) both;
+}
+
+/* The loading bar fills across the hold, so the wait reads as deliberate */
+.splash__bar {
+  transform-origin: left center;
+  animation: splash-bar var(--splash-hold, 2400ms) 180ms linear both;
+}
+
+.splash__lights span {
+  animation: splash-pulse 1100ms ease-in-out infinite;
+}
+
+/* ==================================================================
+   Photographic sections
+   ================================================================== */
+
+.photo-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.photo-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-image: url('/images/car-smoke.jpg');
+  background-size: cover;
+  background-position: center 58%;
+}
+
+.photo-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(10, 10, 12, 0.96) 18%,
+      rgba(10, 10, 12, 0.72) 52%,
+      rgba(10, 10, 12, 0.45)
+    ),
+    linear-gradient(to bottom, rgba(10, 10, 12, 0.5), transparent 35%, rgba(10, 10, 12, 0.95));
+}
+
+/* Quieter version, for a strip rather than a full hero */
+.photo-strip::after {
+  background:
+    radial-gradient(70% 90% at 50% 50%, rgba(10, 10, 12, 0.35), rgba(10, 10, 12, 0.88) 78%),
+    linear-gradient(to bottom, rgba(10, 10, 12, 0.75), rgba(10, 10, 12, 0.2) 45%, rgba(10, 10, 12, 0.9));
+}
+
+/* The banner crops to the car rather than the empty tarmac around it */
+.photo-strip::before {
+  background-position: center 62%;
+  transform: scale(1.15);
+}

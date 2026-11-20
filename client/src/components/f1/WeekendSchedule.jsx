@@ -12,12 +12,7 @@
  */
 
 import { Tag } from '../ui'
-import {
-  formatSessionDay,
-  formatSessionTime,
-  localTimeZone,
-  isPast,
-} from '../../utils/format'
+import { formatSessionDay, formatSessionTime, localTimeZone, isPast } from '../../utils/format'
 
 const SHORT_TONE = {
   RACE: 'accent',
@@ -59,16 +54,19 @@ export default function WeekendSchedule({ race, compact = false }) {
                   <div
                     key={session.key}
                     className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors ${
-                      session.isRace
-                        ? 'border-accent/40 bg-accent/5'
-                        : 'border-line bg-surface-2'
+                      session.isRace ? 'border-accent/40 bg-accent/5' : 'border-line bg-surface-2'
                     } ${done ? 'opacity-55' : ''}`}
                   >
-                    <Tag tone={SHORT_TONE[session.short] ?? 'neutral'} className="w-14 justify-center">
+                    <Tag
+                      tone={SHORT_TONE[session.short] ?? 'neutral'}
+                      className="w-14 justify-center"
+                    >
                       {session.short}
                     </Tag>
 
-                    <span className={`flex-1 text-sm ${session.isRace ? 'font-semibold text-chalk' : 'text-muted'}`}>
+                    <span
+                      className={`flex-1 text-sm ${session.isRace ? 'font-semibold text-chalk' : 'text-muted'}`}
+                    >
                       {session.name}
                     </span>
 

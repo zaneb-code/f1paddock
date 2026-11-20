@@ -18,12 +18,16 @@
  *   /admin              Admin           MODERATORS ONLY
  *   /login /register    auth            LOGGED-OUT ONLY
  *   *                   NotFound
+ *
+ * Splash is mounted above the Routes: it plays once on page load and
+ * unmounts itself, so it never interrupts navigation between pages.
  */
 
 import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
+import Splash from './components/layout/Splash'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import ScrollToTop from './components/layout/ScrollToTop'
@@ -65,6 +69,10 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Opening screen. Mounted here rather than inside a page so it plays
+          once per page load and not again on every route change. */}
+      <Splash />
+
       <ScrollToTop />
       <Navbar />
 

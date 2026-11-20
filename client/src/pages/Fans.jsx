@@ -53,7 +53,7 @@ export default function Fans() {
         (p) =>
           p.username.toLowerCase().includes(needle) ||
           (p.displayName ?? '').toLowerCase().includes(needle) ||
-          (p.bio ?? '').toLowerCase().includes(needle)
+          (p.bio ?? '').toLowerCase().includes(needle),
       )
     }
 

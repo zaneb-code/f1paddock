@@ -115,7 +115,7 @@ export default function Profile() {
   // Map each driver to their team so chips get the right colour. The
   // standings carry that link; the plain driver list does not.
   const teamOf = Object.fromEntries(
-    standings.map((row) => [row.driver.driverId, row.constructor.id])
+    standings.map((row) => [row.driver.driverId, row.constructor.id]),
   )
 
   const favCount =
@@ -152,7 +152,11 @@ export default function Profile() {
         {/* ---------------- Identity ---------------- */}
         <aside className="space-y-4">
           <div className="card p-6 text-center">
-            <Avatar name={details.displayName || user.username} size="xl" className="mx-auto mb-3" />
+            <Avatar
+              name={details.displayName || user.username}
+              size="xl"
+              className="mx-auto mb-3"
+            />
             <h2 className="text-2xl">{details.displayName || user.username}</h2>
             <p className="text-sm text-dim">@{profile.username}</p>
             <p className="mt-1 text-xs text-dim">{user.email}</p>
@@ -284,7 +288,9 @@ export default function Profile() {
                       }`}
                       aria-pressed={on}
                     >
-                      <span className={`block font-display font-semibold ${on ? 'text-accent-soft' : 'text-chalk'}`}>
+                      <span
+                        className={`block font-display font-semibold ${on ? 'text-accent-soft' : 'text-chalk'}`}
+                      >
                         {era.label}
                       </span>
                       <span className="text-xs text-dim">{era.blurb}</span>

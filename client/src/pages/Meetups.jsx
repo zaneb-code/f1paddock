@@ -20,7 +20,13 @@ import {
   selectMeetupNotice,
 } from '../store/slices/meetupsSlice'
 import { selectUser } from '../store/slices/authSlice'
-import { fetchSchedule, selectRaces, selectScheduleStatus, selectSeason } from '../store/slices/f1Slice'
+import {
+  fetchSchedule,
+  selectRaces,
+  selectScheduleStatus,
+  selectSeason,
+} from '../store/slices/f1Slice'
+import { schemas, validateForm } from '../utils/validate'
 
 const TABS = [
   { id: 'all', label: 'All' },
@@ -56,6 +62,7 @@ export default function Meetups() {
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState(BLANK)
   const [formError, setFormError] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
 
   useEffect(() => {
     if (status === 'idle') dispatch(loadMeetups())
@@ -66,9 +73,14 @@ export default function Meetups() {
     event.preventDefault()
     setFormError(null)
 
-    if (!draft.title.trim()) return setFormError('Give it a title.')
-    if (!draft.startsAt) return setFormError('Pick a date and time.')
-    if (!draft.location.trim()) return setFormError('Say where it is happening.')
+    // Level 1. The same schema the server checks, so what passes here
+    // passes there — and what fails is explained before any round trip.
+    const { ok, errors } = validateForm(schemas.meetup, draft)
+    if (!ok) {
+      setFieldErrors(errors)
+      return setFormError(Object.values(errors)[0])
+    }
+    setFieldErrors({})
 
     const result = await dispatch(
       addMeetup({
@@ -77,12 +89,18 @@ export default function Meetups() {
         startsAt: new Date(draft.startsAt).toISOString(),
         raceRound: draft.raceRound ? Number(draft.raceRound) : null,
         capacity: draft.capacity ? Number(draft.capacity) : null,
-      })
+      }),
     )
 
     if (result.meta.requestStatus === 'fulfilled') {
       setCreating(false)
       setDraft(BLANK)
+      setFieldErrors({})
+    } else {
+      // Level 2. The server answers with the same { field: message } shape,
+      // so its reply drops straight into the same state.
+      setFieldErrors(result.payload?.fields ?? {})
+      setFormError(result.payload?.error ?? 'Could not create that meetup.')
     }
   }
 
@@ -177,7 +195,7 @@ export default function Meetups() {
             </div>
           )}
 
-          <Field label="Title" htmlFor="m-title">
+          <Field label="Title" htmlFor="m-title" error={fieldErrors.title}>
             <input
               id="m-title"
               className="input"
@@ -188,7 +206,7 @@ export default function Meetups() {
             />
           </Field>
 
-          <Field label="Description" htmlFor="m-desc">
+          <Field label="Description" htmlFor="m-desc" error={fieldErrors.description}>
             <textarea
               id="m-desc"
               className="input min-h-[72px] resize-y"
@@ -212,7 +230,7 @@ export default function Meetups() {
               </select>
             </Field>
 
-            <Field label="Starts" htmlFor="m-when">
+            <Field label="Starts" htmlFor="m-when" error={fieldErrors.startsAt}>
               <input
                 id="m-when"
                 type="datetime-local"
@@ -226,6 +244,7 @@ export default function Meetups() {
           <Field
             label={draft.mode === 'online' ? 'Where online' : 'Address'}
             htmlFor="m-loc"
+            error={fieldErrors.location}
           >
             <input
               id="m-loc"
@@ -238,7 +257,7 @@ export default function Meetups() {
           </Field>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Race (optional)" htmlFor="m-race">
+            <Field label="Race (optional)" htmlFor="m-race" error={fieldErrors.raceRound}>
               <select
                 id="m-race"
                 className="input"
@@ -254,7 +273,7 @@ export default function Meetups() {
               </select>
             </Field>
 
-            <Field label="Capacity (optional)" htmlFor="m-cap">
+            <Field label="Capacity (optional)" htmlFor="m-cap" error={fieldErrors.capacity}>
               <input
                 id="m-cap"
                 type="number"
