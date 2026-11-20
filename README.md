@@ -1,97 +1,54 @@
 # F1Paddock
 
-A social platform for Formula 1 fans. Follow every race weekend, argue about strategy in
-driver and team communities, predict the podium against an AI, and organise meetups.
+A social platform for Formula 1 fans. Follow every race weekend, argue about
+strategy in driver and team communities, predict the podium against an AI, and
+organise meetups.
 
 Semester project for Web Programming — **Zainab Khalid**.
 
-> **Phase 1 status:** the complete front end plus a small Express API for the two things
-> that cannot run in a browser (JWT authentication with emailed verification codes, and the
-> AI prediction call). Phase 2 replaces the client-side mock data layer with MongoDB-backed
-> routes on the same server.
-
----
-
-## What it does
-
-**Race information — live from the F1 API**
-- The full season calendar, every round
-- Each Grand Prix's complete weekend timetable: practice, qualifying, sprint qualifying,
-  sprint and the race, in your own timezone
-- Both sprint and conventional weekend formats handled automatically
-- Live countdown to the next session
-- Full race results with grid position and places gained, plus the qualifying order
-- Drivers' and constructors' championship tables
-
-**Authentication with email verification**
-- Register with email, username and password
-- A six-digit code is emailed to the address; the account is not usable until it is entered
-- Codes expire after 10 minutes and lock after 5 wrong attempts
-- Passwords hashed with bcrypt, sessions issued as real JWTs
-- Logging in with an unverified account sends you to the code screen rather than refusing
-
-**Race predictions, with an AI second opinion**
-- Pick your podium and optionally the pole sitter
-- Generate the machine's prediction alongside yours and compare them position by position
-- Scoring: 10 points for an exact placing, 4 for the right driver in the wrong slot, 5 for pole
-- Leaderboard across all scored races
-
-**The social platform**
-- Personalised F1 profile: favourite drivers, teams, circuits and eras
-- Find fans with similar interests, scored on what you actually have in common
-- Driver, team and general communities with posts, comments and likes
-- A discussion room attached to every Grand Prix
-- Follow drivers, teams and other fans
-- Create and join meetups, online or in person
-- Report content, and a moderation queue for stewards
-- Search and filter across races, communities, discussions and fans
-
----
-
-## Tech stack
-
-| Layer | Choice | Why |
-| --- | --- | --- |
-| UI | React 19 | Component model, the course stack |
-| State | Redux Toolkit | Shared state across seven feature areas |
-| Routing | React Router 7 | Client-side routing, protected routes |
-| Styling | Tailwind CSS 4 | Utility-first, configured in CSS via `@theme` |
-| Build | Vite 8 | Fast dev server, `/api` proxy to the backend |
-| API | Express 5 | Auth and the AI endpoint |
-| Auth | jsonwebtoken + bcryptjs | Real JWTs, hashed passwords |
-| Email | Nodemailer | Verification codes |
-| F1 data | [Jolpica-F1](https://github.com/jolpica/jolpica-f1) | Free, no key, Ergast's successor |
+> **Phase 2.** Everything now runs through a MongoDB-backed Express API, with
+> validation at three levels and the security practices from Lectures 23–25
+> applied throughout. `LECTURE_MAP.md` maps every lecture to the file that
+> uses it.
 
 ---
 
 ## Running it
 
-### 1. Prerequisites
+### 1. You need MongoDB
 
-Node.js 18 or newer. Check with `node -v`.
+Either a local install or a free cloud cluster — the app does not care which.
 
-### 2. Install
+**Local (Windows):** install MongoDB Community Server from
+<https://www.mongodb.com/try/download/community>. It runs as a service, so
+once it is installed the default `MONGO_URI` already works.
+
+**Or MongoDB Atlas (no install):** make a free cluster at
+<https://www.mongodb.com/atlas>, add a database user, allow access from
+anywhere under Network Access, then copy the connection string into
+`server/.env` as `MONGO_URI`.
+
+To check a local install is up:
 
 ```bash
-git clone https://github.com/<your-username>/f1paddock.git
-cd f1paddock
-npm run install:all
+mongosh --eval "db.runCommand({ ping: 1 })"
 ```
 
-That installs the root, the server and the client.
-
-### 3. Configure the server
+### 2. Install and configure
 
 ```bash
+git clone <your repo url>
+cd f1paddock
+npm run install:all
 cp server/.env.example server/.env
 ```
 
-**Every value has a working default, so the app runs with the file untouched.** Out of the
-box it uses `MAIL_MODE=console` (verification codes are printed in the server terminal
-rather than emailed) and `AI_PROVIDER=heuristic` (predictions are calculated, not generated
-by a model). Both are explained below.
+Every value in `.env` has a working default except `MONGO_URI` if you are
+using Atlas. Out of the box it uses `MAIL_MODE=console` (verification codes
+are printed in the server terminal) and `AI_PROVIDER=heuristic` (predictions
+are calculated, not generated by a model).
 
-### 4. Run both halves
+### 3. Run both halves
 
 ```bash
 npm run dev
@@ -100,203 +57,185 @@ npm run dev
 - Client: <http://localhost:5173>
 - API: <http://localhost:4000>
 
-Or in two terminals: `npm run dev:server` and `npm run dev:client`.
+If the server exits saying it cannot reach MongoDB, that is deliberate — a
+server that is up but cannot reach its database answers every request with a
+500 and looks like a bug in the code.
 
-The F1 data needs no key and works immediately.
-
----
-
-## Getting the verification code
-
-Registration always emails a code. How it is delivered depends on `MAIL_MODE` in
-`server/.env`:
-
-| Mode | What happens | Setup |
-| --- | --- | --- |
-| `console` *(default)* | The code is printed in the server terminal | None |
-| `ethereal` | A real email is composed and you get a preview link in the terminal | None — an account is created automatically |
-| `smtp` | A real email is sent to a real inbox | Fill in `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` |
-
-In `console` mode, look for this in the server terminal after signing up:
+**Your verification code** is printed in the server terminal:
 
 ```
   [verification] you@example.com -> code 349855
 ```
 
-There is also a development-only endpoint listing pending codes:
-<http://localhost:4000/api/_debug/state>
+**To see the moderation queue**, register with the username `admin`,
+`moderator` or `steward` (`MODERATOR_USERNAMES` in `.env`). Unlike Phase 1,
+this now sets a real `role` on the user document and is checked on the server.
 
 ---
 
-## Turning on the real AI
+## What changed from Phase 1
 
-By default `AI_PROVIDER=heuristic`: predictions come from a transparent calculation
-(championship points 75%, recent podiums 25%). It is labelled as such everywhere in the
-UI — it is deliberately **not** presented as an AI prediction.
+| | Phase 1 | Phase 2 |
+| --- | --- | --- |
+| Accounts | In memory, lost on restart | MongoDB, via Mongoose |
+| Posts, communities, meetups | `localStorage` in the browser | Real API routes + MongoDB |
+| Session | JWT in `localStorage` | JWT in an `httpOnly`, `SameSite=Strict` cookie |
+| CSRF | Nothing | Double-submit token on every write |
+| Moderator check | In the browser | On the server, from the user's `role` |
+| Prediction scoring | In a Redux reducer | On the server, written to the database |
+| Validation | A few form checks | Three levels, sharing one rule vocabulary |
+| XSS | React's escaping only | Sanitised on the way in as well |
+| CORS | `origin: true` | One named origin, with credentials |
 
-To use a language model, set the provider and its key in `server/.env`:
-
-```bash
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
-```
-
-`openai` and `anthropic` work the same way. If a provider call fails the server falls back
-to the heuristic and says so in the response, so the feature never breaks the page.
-
-**The key stays on the server.** Anything in React code is downloadable by anyone who opens
-devtools, so an API key in the frontend is a published API key. That is the main reason this
-project has a backend in Phase 1 at all.
+The client changed far less than the server. `mockDb.js` was written in Phase 1
+as a contract — async, promise-based, with the signatures a real API would
+need — so replacing it meant writing `api/social.js` with the same 28 function
+names and changing one import line in each of five slices.
 
 ---
 
 ## Project structure
 
 ```
-f1paddock/
-├── client/                      React front end
-│   └── src/
-│       ├── api/
-│       │   ├── jolpica.js       F1 API client + response flattening
-│       │   ├── backend.js       Our Express API (auth, AI)
-│       │   └── mockDb.js        Social data layer (Phase 2 replaces this)
-│       ├── store/
-│       │   ├── store.js         configureStore
-│       │   └── slices/          auth, profile, f1, social, predictions, meetups, moderation
-│       ├── components/
-│       │   ├── ui/              Buttons, cards, states, modal, tabs
-│       │   ├── f1/              Race card, weekend schedule, countdown, standings
-│       │   ├── social/          Post card, composer, community/fan/meetup cards
-│       │   ├── predictions/     Prediction form, AI panel, comparison, leaderboard
-│       │   └── layout/          Navbar, footer, scroll reset
-│       ├── pages/               16 pages, one per route
-│       ├── routes/guards.jsx    Protected / public-only / moderator routes
-│       └── utils/               Formatting, validation, team colours
-│
-└── server/                      Express API
-    └── src/
-        ├── index.js             App setup and routes
-        ├── routes/auth.js       register, verify, resend, login, me
-        ├── routes/ai.js         AI prediction endpoint
-        ├── ai/provider.js       Swappable LLM provider + heuristic fallback
-        └── lib/
-            ├── store.js         In-memory data (Phase 2: MongoDB)
-            ├── jwt.js           Token signing, verification, auth middleware
-            └── mailer.js        Verification email, three delivery modes
+server/
+└── src/
+    ├── app.js                 the Express app and its middleware chain
+    ├── index.js               connect to MongoDB, then listen
+    ├── config/db.js           the database connection, called once
+    ├── models/                8 Mongoose schemas — validation level 3
+    ├── controllers/           request in, response out
+    ├── routes/                auth → sanitise → validate → controller
+    ├── middleware/
+    │   ├── auth.js            requireAuth, requireModerator, cookie options
+    │   ├── csrf.js            double-submit token
+    │   ├── sanitize.js        XSS: strip on the way in, escape on the way out
+    │   ├── validate.js        validation level 2
+    │   └── errorHandler.js    the one place an error becomes a response
+    ├── lib/                   jwt, mailer
+    └── ai/provider.js         swappable LLM, with an honest fallback
+
+client/
+└── src/
+    ├── api/
+    │   ├── http.js            credentials, CSRF, one error shape
+    │   ├── backend.js         auth + AI
+    │   ├── social.js          replaces mockDb, same contract
+    │   └── jolpica.js         the third-party F1 API
+    ├── store/slices/          7 Redux Toolkit slices
+    ├── components/            ui, f1, social, predictions, layout
+    ├── pages/                 16 pages
+    └── utils/validate.js      validation level 1, and every limit in one place
 ```
 
 ---
 
-## Routes
+## API
 
-| Path | Page | Access |
+All under `/api`. Writes need a session cookie and an `X-CSRF-Token` header.
+
+| Method | Path | Notes |
 | --- | --- | --- |
-| `/` | Personalised dashboard | Public |
-| `/races` | Season calendar | Public |
-| `/races/:round` | Weekend schedule, results, discussion room | Public |
-| `/standings` | Championship tables | Public |
-| `/communities` | Browse and create communities | Public |
-| `/communities/:slug` | One community's feed | Public |
-| `/leaderboard` | Prediction leaderboard | Public |
-| `/meetups` | Create and join meetups | Public |
-| `/fans` | Find fans with similar interests | Public |
-| `/fans/:username` | A fan's public profile | Public |
-| `/predictions` | Your picks and the AI's | **Logged in** |
-| `/profile` | Your favourites | **Logged in** |
-| `/admin` | Moderation queue | **Moderators** |
-| `/login`, `/register` | Authentication | Logged out only |
-| `*` | 404 | Public |
+| `GET` | `/csrf-token` | Call once before any write |
+| `POST` | `/auth/register` | → `201`, emails a six-digit code |
+| `POST` | `/auth/verify` | Checks the code, sets the session cookie |
+| `POST` | `/auth/resend` | A fresh code |
+| `POST` | `/auth/login` | Sets the session cookie |
+| `POST` | `/auth/logout` | Clears it |
+| `GET` | `/auth/me` | Current user |
+| `PATCH` | `/auth/password` | Needs the current password |
+| `GET` `PATCH` | `/profiles/me` | Your favourites and bio |
+| `GET` | `/profiles/me/similar` | Fan matching, scored and explained |
+| `PUT` | `/profiles/:username/follow` | Follow a fan |
+| `PUT` | `/profiles/me/follows/:kind/:id` | Follow a driver or team |
+| `GET` `POST` | `/communities` | List, create |
+| `GET` | `/communities/:slug` | One community |
+| `PUT` | `/communities/:slug/membership` | Join or leave |
+| `GET` `POST` | `/posts` | `?communityId=` `?raceRound=` `?search=` |
+| `GET` `DELETE` | `/posts/:id` | Author or steward |
+| `PUT` | `/posts/:id/like` | |
+| `GET` `POST` | `/posts/:postId/comments` | Nested one level |
+| `DELETE` | `/comments/:id` | Shallow, by its own id |
+| `GET` `POST` | `/meetups` | |
+| `PUT` | `/meetups/:id/attendance` | |
+| `GET` | `/predictions/me` | |
+| `PUT` | `/predictions/:season/:round` | Idempotent — one per race |
+| `POST` | `/predictions/:id/scores` | Scores your own |
+| `GET` | `/predictions/leaderboard` | One aggregation |
+| `POST` | `/reports` | Any member |
+| `GET` `PATCH` | `/reports`, `/reports/:id` | **Stewards only** |
+| `GET` `POST` | `/ai/status`, `/ai/predict` | Rate limited |
 
-To see the admin page, register with the username `admin`, `moderator` or `steward`
-(see `MODERATOR_USERNAMES` in `moderationSlice.js`).
-
----
-
-## API endpoints
-
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `POST` | `/api/auth/register` | Create account, email a code |
-| `POST` | `/api/auth/verify` | Check the code, issue a JWT |
-| `POST` | `/api/auth/resend` | Send a fresh code |
-| `POST` | `/api/auth/login` | Email + password, issue a JWT |
-| `GET` | `/api/auth/me` | Current user (requires a token) |
-| `GET` | `/api/ai/status` | Which prediction engine is configured |
-| `POST` | `/api/ai/predict` | Generate a podium prediction (requires a token) |
-| `GET` | `/api/health` | Server status |
-
-External, called from the browser:
-
-| Endpoint | Used for |
-| --- | --- |
-| `GET /ergast/f1/{season}/races` | Season calendar with session times |
-| `GET /ergast/f1/{season}/{round}/results` | Race results |
-| `GET /ergast/f1/{season}/{round}/qualifying` | Qualifying order |
-| `GET /ergast/f1/{season}/driverstandings` | Drivers' championship |
-| `GET /ergast/f1/{season}/constructorstandings` | Constructors' championship |
-| `GET /ergast/f1/{season}/drivers\|constructors\|circuits` | Grid lists for favourites |
+Status codes used: `200` `201` `204` `400` `401` `403` `404` `409` `413` `429` `500`.
 
 ---
 
-## Redux state
+## Security
 
+Each of these is explained, with the attack it prevents, in a comment at the
+top of the file that implements it.
+
+- **XSS** — `sanitize-html` strips every tag before anything is stored
+  (`middleware/sanitize.js`), React escapes on output, and the app contains no
+  `dangerouslySetInnerHTML`. Both directions, because either alone is a single
+  point of failure.
+- **CSRF** — the session cookie is `SameSite=Strict`, and every state-changing
+  request must echo a token the server put in a readable cookie. An attacker's
+  page can cause our cookie to be *sent* but cannot *read* it, so it cannot set
+  the header.
+- **Session theft** — the JWT is in an `httpOnly` cookie, so no script can read
+  it. This is the main reason it moved out of `localStorage`.
+- **SOP and CORS** — one named origin, never `*`, with `credentials: true`.
+  CORS protects the user's browser, not this server, which is why every route
+  still authenticates and validates for itself.
+- **Headers** — `helmet`, with HSTS in production only. Turning HSTS on from
+  localhost teaches your browser to force HTTPS on localhost, and it remembers
+  for months.
+- **Brute force** — `express-rate-limit` on the auth and AI routes.
+- **Password storage** — bcrypt, and `select: false` so the hash cannot leak
+  through a careless `res.json(user)`.
+- **Enumeration** — login, verify and resend give the same answer whether or
+  not the address exists.
+
+### HTTPS
+
+In production the usual arrangement is the one from Lecture 23: nginx holds
+the certificate and forwards plain HTTP to the app, so Node never sees a key.
+`app.js` sets `trust proxy` and redirects HTTP to HTTPS for that case.
+
+To try TLS locally, make a self-signed pair and point `SSL_KEY_PATH` and
+`SSL_CERT_PATH` at it:
+
+```bash
+mkdir -p server/certs
+openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+  -keyout server/certs/key.pem -out server/certs/cert.pem -subj "/CN=localhost"
 ```
-store
-├── auth         user, JWT state, verification stage
-├── profile      favourites, follows, similar-fan matching
-├── f1           calendar, standings, grid, per-race detail (cached by round)
-├── social       communities, posts, comments, race discussion rooms
-├── predictions  your picks, AI predictions, scoring, leaderboard
-├── meetups      meetups and attendance
-└── moderation   reports and the admin queue
-```
 
-Redux Toolkit features used: `configureStore`, `createSlice`, `createAsyncThunk`,
-`extraReducers` with the builder callback, auto-generated actions, selectors, and
-`useSelector` / `useDispatch` throughout.
+The browser will warn that the certificate is not from a trusted authority,
+which is correct — you signed it yourself.
 
 ---
 
-## Design decisions
+## Known limitations
 
-- **A race discussion room is just a post with a `raceRound` instead of a `communityId`.**
-  Everything built for community posts — liking, commenting, reporting, searching — works
-  in a race room with no extra code.
-- **The mock data layer is async and returns promises.** It behaves like a network call, so
-  the thunks, loading spinners and error states written against it are exactly what Phase 2
-  needs when these become real routes. Swapping it for `fetch` should not touch a component.
-- **Session times are rendered in the viewer's timezone.** "When is qualifying" is the only
-  question a fan is actually asking.
-- **Weekend sessions are sorted by start time rather than hardcoded.** That produces the
-  correct order for both sprint and conventional weekends with no special case.
-- **Per-race data is cached by round.** A completed race's result never changes, so visiting
-  it twice does not refetch.
-- **The AI provider is swappable and falls back honestly.** If no key is configured, or a
-  provider fails, the UI says the result came from a calculation rather than a model.
-- **Duplicate prevention and scoring live in reducers, not components.** The rules hold no
-  matter which part of the UI dispatches the action.
-- **Logout navigates before clearing the session.** Clearing first makes the route guard
-  redirect to `/login`, overriding wherever we meant to send the user.
+Worth stating plainly rather than being found:
 
----
-
-## Known limitations in Phase 1
-
-These are deliberate, and are what Phase 2 addresses:
-
-- **Server data is in memory**, so accounts are lost when the server restarts. All storage
-  calls go through `server/src/lib/store.js`, which is the single file Phase 2 replaces with
-  Mongoose models.
-- **Social data lives in the browser's localStorage**, so posts and predictions are
-  per-browser rather than shared between users.
-- **The moderator check is client-side**, which is a convenience, not a security control.
-  Phase 2 must check the user's role on the server for every moderation request.
-- **Predictions are scored on demand** from the race page. Phase 2 scores them on the server
-  when results arrive.
+- **Race results come from the client when scoring a prediction.** A
+  determined user could post a flattering result. The fix is the server
+  fetching the result itself from the F1 API; it is a small change to
+  `predictionController.scoreRace` plus a scheduled job to call it.
+- **Moderator role is granted by username at sign-up.** A convenience for
+  marking, not a design anyone should ship. Roles should be granted by an
+  existing admin.
+- **No pagination.** Lists are capped at 100–200 rows. Fine at this size,
+  wrong at any real one.
+- **No refresh tokens.** The session cookie lasts seven days and then you log
+  in again.
 
 ---
 
 ## Credits
 
-Race data from the [Jolpica-F1 API](https://github.com/jolpica/jolpica-f1), the open
-community successor to Ergast. This project is not affiliated with or endorsed by Formula 1.
+Race data from the [Jolpica-F1 API](https://github.com/jolpica/jolpica-f1), the
+open community successor to Ergast. This project is not affiliated with or
+endorsed by Formula 1.
