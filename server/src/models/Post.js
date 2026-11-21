@@ -109,15 +109,19 @@ postSchema.virtual('comments', {
  * Without this, deleting a post would leave its comments and reports behind
  * as orphans that no query ever reaches but every backup still carries.
  */
-postSchema.pre('findOneAndDelete', async function cascade(next) {
+postSchema.pre('findOneAndDelete', async function cascade() {
+  // No `next` parameter, and no next() call. Mongoose inspects the hook: an
+  // async function is awaited and never handed a callback, so declaring one
+  // gives you `undefined` and `next is not a function` at the end of an
+  // otherwise successful hook. A sync hook takes next; an async hook returns.
   const doc = await this.model.findOne(this.getFilter())
-  if (doc) {
-    const { default: Comment } = await import('./Comment.js')
-    const { default: Report } = await import('./Report.js')
-    await Comment.deleteMany({ post: doc._id })
-    await Report.deleteMany({ targetType: 'post', targetId: doc._id.toString() })
-  }
-  next()
+  if (!doc) return
+
+  const { default: Comment } = await import('./Comment.js')
+  const { default: Report } = await import('./Report.js')
+
+  await Comment.deleteMany({ post: doc._id })
+  await Report.deleteMany({ targetType: 'post', targetId: doc._id.toString() })
 })
 
 export default mongoose.model('Post', postSchema)
