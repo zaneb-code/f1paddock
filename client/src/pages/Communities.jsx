@@ -20,11 +20,11 @@ import {
 import { selectUser } from '../store/slices/authSlice'
 import { schemas, validateForm, LIMITS } from '../utils/validate'
 
+// Communities are created as 'general' — the Community schema also allows
+// 'driver' and 'team' with a refId, but nothing in the UI sets them, so tabs
+// for those would always be empty. Listed here only when they can be filled.
 const TABS = [
   { id: 'all', label: 'All' },
-  { id: 'team', label: 'Teams' },
-  { id: 'driver', label: 'Drivers' },
-  { id: 'general', label: 'General' },
   { id: 'mine', label: 'Joined' },
 ]
 
