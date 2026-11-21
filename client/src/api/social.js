@@ -57,10 +57,26 @@ function asMeetup(meetup) {
   }
 }
 
+/**
+ * The server stores a fan's follows as User ids in `followedUsers`, and keys
+ * its profile routes on username. The UI was written against the Phase 1 mock,
+ * which kept a flat `following` array. Rather than rewrite every component,
+ * normalise here: expose `following` (user ids, as strings) alongside the
+ * `userId` that each comparison should use.
+ */
+function asProfile(profile) {
+  if (!profile) return null
+
+  return {
+    ...profile,
+    following: (profile.followedUsers ?? []).map(String),
+  }
+}
+
 /** The server groups shared favourites by field name; the UI wants short keys. */
 function asMatch(match) {
   return {
-    profile: match.profile,
+    profile: asProfile(match.profile),
     score: match.score,
     isFollowing: match.isFollowing,
     shared: {
@@ -93,17 +109,17 @@ export async function ensureProfile() {
 
 export async function getProfile() {
   const { profile } = await request.get('/profiles/me')
-  return profile
+  return asProfile(profile)
 }
 
 export async function getProfileByUsername(username) {
   const data = await orNull(request.get(`/profiles/${encodeURIComponent(username)}`))
-  return data?.profile ?? null
+  return asProfile(data?.profile ?? null)
 }
 
 export async function listProfiles() {
   const { profiles } = await request.get('/profiles')
-  return profiles
+  return profiles.map(asProfile)
 }
 
 export async function updateProfile(_userId, patch) {
@@ -111,19 +127,22 @@ export async function updateProfile(_userId, patch) {
   // A client that could name whose profile to edit would be a client that
   // could edit anyone's.
   const { profile } = await request.patch('/profiles/me', patch)
-  return profile
+  return asProfile(profile)
 }
 
-export async function toggleFollowUser(_viewerId, targetId) {
-  const { profile } = await request.put(`/profiles/${encodeURIComponent(targetId)}/follow`)
-  return profile
+export async function toggleFollowUser(_viewerId, target) {
+  // `target` is a USERNAME. The route is /profiles/:username/follow and the
+  // controller resolves it to a User — passing a Profile id here 404s, because
+  // a profile's id is not its owner's id.
+  const { profile } = await request.put(`/profiles/${encodeURIComponent(target)}/follow`)
+  return asProfile(profile)
 }
 
 export async function toggleFollowEntity(_viewerId, kind, entityId) {
   const { profile } = await request.put(
     `/profiles/me/follows/${kind}/${encodeURIComponent(entityId)}`,
   )
-  return profile
+  return asProfile(profile)
 }
 
 export async function findSimilarFans() {

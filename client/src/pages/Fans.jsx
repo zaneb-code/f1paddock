@@ -45,7 +45,8 @@ export default function Fans() {
   }, [dispatch, user])
 
   const directory = useMemo(() => {
-    let list = fans.filter((p) => p.id !== user?.id)
+    // userId, not id: `id` is the profile document's, `user.id` is the account's.
+    let list = fans.filter((p) => p.userId !== user?.id)
 
     if (query.trim()) {
       const needle = query.toLowerCase()
@@ -134,7 +135,7 @@ export default function Fans() {
                   isFollowing={row.isFollowing}
                   canFollow
                   onToggleFollow={() =>
-                    dispatch(followUser({ viewerId: user.id, targetId: row.profile.id }))
+                    dispatch(followUser({ viewerId: user.id, targetId: row.profile.username }))
                   }
                 />
               ))}
@@ -166,9 +167,9 @@ export default function Fans() {
                   key={fan.id}
                   profile={fan}
                   canFollow={Boolean(user)}
-                  isFollowing={profile?.following?.includes(fan.id) ?? false}
+                  isFollowing={profile?.following?.includes(fan.userId) ?? false}
                   onToggleFollow={() =>
-                    dispatch(followUser({ viewerId: user.id, targetId: fan.id }))
+                    dispatch(followUser({ viewerId: user.id, targetId: fan.username }))
                   }
                 />
               ))}

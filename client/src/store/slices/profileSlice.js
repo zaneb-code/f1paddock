@@ -191,13 +191,26 @@ const profileSlice = createSlice({
       // need the similar-fans list re-marked so the button flips instantly.
       .addCase(followUser.fulfilled, (state, action) => {
         state.me = action.payload
+        // Guard the shape: a reducer that throws leaves the UI frozen with no
+        // error anywhere, which is far harder to spot than a wrong value.
+        const following = action.payload?.following ?? []
+
         state.similar = state.similar.map((row) => ({
           ...row,
-          isFollowing: action.payload.following.includes(row.profile.id),
+          isFollowing: following.includes(row.profile.userId),
         }))
       })
       .addCase(followEntity.fulfilled, (state, action) => {
         state.me = action.payload
+      })
+
+      // Without these the button simply did nothing when the request failed:
+      // no error, no state change, no clue. Surface it instead.
+      .addCase(followUser.rejected, (state, action) => {
+        state.error = action.payload ?? 'Could not update who you follow.'
+      })
+      .addCase(followEntity.rejected, (state, action) => {
+        state.error = action.payload ?? 'Could not update who you follow.'
       })
   },
 })

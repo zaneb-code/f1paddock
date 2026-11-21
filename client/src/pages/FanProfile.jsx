@@ -84,8 +84,9 @@ export default function FanProfile() {
 
   if (!profile) return null
 
-  const isMe = user?.id === profile.id
-  const isFollowing = myProfile?.following?.includes(profile.id) ?? false
+  // Compare account ids, not profile ids — they are different documents.
+  const isMe = user?.id === profile.userId
+  const isFollowing = myProfile?.following?.includes(profile.userId) ?? false
 
   return (
     <div className="shell py-10">
@@ -111,7 +112,9 @@ export default function FanProfile() {
           {user && !isMe && (
             <button
               className={`btn ${isFollowing ? 'btn-ghost' : 'btn-primary'}`}
-              onClick={() => dispatch(followUser({ viewerId: user.id, targetId: profile.id }))}
+              onClick={() =>
+                dispatch(followUser({ viewerId: user.id, targetId: profile.username }))
+              }
             >
               {isFollowing ? 'Following' : 'Follow'}
             </button>
