@@ -121,7 +121,13 @@ postSchema.pre('findOneAndDelete', async function cascade() {
   const { default: Report } = await import('./Report.js')
 
   await Comment.deleteMany({ post: doc._id })
-  await Report.deleteMany({ targetType: 'post', targetId: doc._id.toString() })
+  // Only the reports nobody has acted on. A resolved report is the record of
+  // a moderator's decision and has to outlive the content it was about.
+  await Report.deleteMany({
+    targetType: 'post',
+    targetId: doc._id.toString(),
+    status: 'open',
+  })
 })
 
 export default mongoose.model('Post', postSchema)

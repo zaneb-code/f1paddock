@@ -2,7 +2,7 @@
  * Admin moderation queue — the "admin moderation and reporting" requirement.
  *
  * Reachable only by a moderator account (see MODERATOR_USERNAMES in
- * moderationSlice). A moderator either hides the reported content or
+ * moderationSlice). A moderator either removes the reported content or
  * dismisses the report.
  *
  * Phase 2 note: the guard here is client-side, which is a convenience, not
@@ -58,7 +58,7 @@ export default function Admin() {
       <PageHeading
         eyebrow="Stewards' room"
         title="Moderation queue"
-        subtitle="Reported posts and comments. Hide what breaks the rules, dismiss what does not."
+        subtitle="Reported posts and comments. Remove what breaks the rules, dismiss what does not."
       />
 
       {(error || notice) && (
@@ -103,7 +103,7 @@ export default function Admin() {
                       <span className="text-sm font-medium text-chalk">
                         {report.targetAuthor?.displayName ?? 'Unknown'}
                       </span>
-                      {report.target.hidden && <Tag tone="stop">Hidden</Tag>}
+                      {report.target.removed && <Tag tone="stop">Removed</Tag>}
                     </div>
                     <p className="text-sm whitespace-pre-line text-chalk/85">
                       {report.target.body}
@@ -126,7 +126,7 @@ export default function Admin() {
                         dispatch(resolveReport({ reportId: report.id, action: 'hide' }))
                       }
                     >
-                      Hide content
+                      Remove content
                     </button>
                     <button
                       className="btn btn-sm btn-ghost"

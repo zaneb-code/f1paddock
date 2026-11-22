@@ -4,7 +4,7 @@
  * ============================================================
  *
  * Any signed-in user can report a post or comment. A moderator sees the
- * queue and either hides the content or dismisses the report.
+ * queue and either removes the content or dismisses the report.
  *
  * Who counts as a moderator: in Phase 1, any account whose username is in
  * MODERATOR_USERNAMES below. Phase 2 replaces that with a `role` field on
@@ -97,7 +97,13 @@ const moderationSlice = createSlice({
           r.id === action.payload.id ? { ...r, ...action.payload } : r,
         )
         state.notice =
-          action.payload.status === 'actioned' ? 'Content hidden.' : 'Report dismissed.'
+          action.payload.status === 'actioned' ? 'Content removed.' : 'Report dismissed.'
+      })
+
+      // Without this a rejected request changed nothing and said nothing —
+      // the buttons looked broken rather than failed.
+      .addCase(resolveReport.rejected, (state, action) => {
+        state.error = action.payload ?? 'Could not update that report.'
       })
   },
 })

@@ -21,19 +21,51 @@ const MODE = (process.env.MAIL_MODE || 'console').toLowerCase()
 
 let transporterPromise = null
 
+/** Nothing to do with mail may hold an HTTP response open longer than this. */
+const MAIL_TIMEOUT_MS = 8000
+
+/** Rejects if the promise has not settled in time. Leaves it running. */
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_resolve, rejectIt) =>
+      setTimeout(() => rejectIt(new Error(`${label} timed out after ${ms}ms`)), ms),
+    ),
+  ])
+}
+
 async function getTransporter() {
   if (transporterPromise) return transporterPromise
 
   if (MODE === 'ethereal') {
-    transporterPromise = nodemailer.createTestAccount().then((account) => {
-      console.log('[mailer] Ethereal test account created:', account.user)
-      return nodemailer.createTransport({
-        host: account.smtp.host,
-        port: account.smtp.port,
-        secure: account.smtp.secure,
-        auth: { user: account.user, pass: account.pass },
+    // createTestAccount() provisions a throwaway inbox over the network and
+    // has no timeout of its own. Whatever request triggered it waits for it,
+    // so a slow or unreachable ethereal.email turns a perfectly correct login
+    // into a 502 from the dev proxy. Cap it, and do NOT keep a failed attempt
+    // cached — the next request should be free to try again.
+    transporterPromise = withTimeout(
+      nodemailer.createTestAccount(),
+      MAIL_TIMEOUT_MS,
+      'Ethereal account creation',
+    )
+      .then((account) => {
+        console.log('[mailer] Ethereal test account created:', account.user)
+        return nodemailer.createTransport({
+          host: account.smtp.host,
+          port: account.smtp.port,
+          secure: account.smtp.secure,
+          auth: { user: account.user, pass: account.pass },
+          connectionTimeout: MAIL_TIMEOUT_MS,
+          greetingTimeout: MAIL_TIMEOUT_MS,
+          socketTimeout: MAIL_TIMEOUT_MS,
+        })
       })
-    })
+      .catch((error) => {
+        console.error('  [mailer] Ethereal unavailable:', error.message)
+        transporterPromise = null
+        return null
+      })
+
     return transporterPromise
   }
 
@@ -44,6 +76,9 @@ async function getTransporter() {
         port: Number(process.env.SMTP_PORT || 587),
         secure: Number(process.env.SMTP_PORT) === 465,
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+        connectionTimeout: MAIL_TIMEOUT_MS,
+        greetingTimeout: MAIL_TIMEOUT_MS,
+        socketTimeout: MAIL_TIMEOUT_MS,
       }),
     )
     return transporterPromise
@@ -88,7 +123,16 @@ export async function sendVerificationEmail(to, code) {
 
   try {
     const transporter = await getTransporter()
-    const info = await transporter.sendMail(buildEmail(to, code))
+
+    // Ethereal was unreachable. The code is already logged above, so the user
+    // can still verify — far better than failing their request.
+    if (!transporter) return { delivered: false, mode: MODE, error: 'mail service unavailable' }
+
+    const info = await withTimeout(
+      transporter.sendMail(buildEmail(to, code)),
+      MAIL_TIMEOUT_MS,
+      'Sending mail',
+    )
 
     const previewUrl = nodemailer.getTestMessageUrl?.(info)
     if (previewUrl) console.log('  [mailer] preview:', previewUrl)

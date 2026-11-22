@@ -311,12 +311,54 @@ export async function createReport(payload) {
   return report
 }
 
+/**
+ * Moderation has two vocabularies and they have to be translated here.
+ *
+ * The UI thinks in three statuses — open, actioned, dismissed — which is how
+ * the Phase 1 mock stored them. The database splits that into a status
+ * (open | resolved) plus the action taken (removed | dismissed), which is the
+ * better model: "resolved" is the state the report is in, "removed" is what
+ * the steward did about it. One report that was dismissed and one whose post
+ * was deleted are both resolved, and the database should say so.
+ *
+ * So translate at the boundary instead of teaching either side the other's
+ * words. Without this the Hide and Dismiss buttons send verbs the server's
+ * validator rejects outright, and nothing happens at all.
+ */
+function asReport(report) {
+  if (!report) return null
+
+  const status =
+    report.status === 'resolved'
+      ? report.action === 'removed'
+        ? 'actioned'
+        : 'dismissed'
+      : 'open'
+
+  return {
+    ...report,
+    status,
+
+    // The mock exposed the reported item as `target` plus a `targetAuthor`.
+    // The server sends a `preview` instead — same data, different names — so
+    // `report.target` was always undefined and the queue claimed every single
+    // report's content "no longer exists", even for posts still sitting there.
+    target: report.preview ? { body: report.preview.body, removed: false } : null,
+    targetAuthor: report.preview?.author ? { displayName: report.preview.author } : null,
+  }
+}
+
+/** What the buttons say -> what the schema's enum allows. */
+const MODERATION_ACTIONS = { hide: 'removed', dismiss: 'dismissed' }
+
 export async function listReports() {
   const { reports } = await request.get('/reports')
-  return reports
+  return reports.map(asReport)
 }
 
 export async function resolveReport(reportId, action) {
-  const { report } = await request.patch(`/reports/${reportId}`, { action })
-  return report
+  const { report } = await request.patch(`/reports/${reportId}`, {
+    action: MODERATION_ACTIONS[action] ?? action,
+  })
+  return asReport(report)
 }

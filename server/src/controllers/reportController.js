@@ -85,6 +85,18 @@ export async function resolveReport(req, res) {
     return res.status(409).json({ error: 'That report has already been dealt with.' })
   }
 
+  // Close the report BEFORE touching the content, not after.
+  //
+  // Deleting a post cascades to the reports filed against it. That cascade
+  // would delete this very report, and the save() below would then fail with
+  // DocumentNotFoundError — so the post vanished, the request 500'd, and the
+  // report sat in the queue looking as though the button did nothing.
+  report.status = 'resolved'
+  report.action = action
+  report.resolvedBy = req.userId
+  report.resolvedAt = new Date()
+  await report.save()
+
   if (action === 'removed') {
     if (report.targetType === 'post') {
       await Post.findOneAndDelete({ _id: report.targetId })
@@ -92,12 +104,6 @@ export async function resolveReport(req, res) {
       await Comment.findByIdAndDelete(report.targetId)
     }
   }
-
-  report.status = 'resolved'
-  report.action = action
-  report.resolvedBy = req.userId
-  report.resolvedAt = new Date()
-  await report.save()
 
   await report.populate('reporter', 'username')
   await report.populate('resolvedBy', 'username')
