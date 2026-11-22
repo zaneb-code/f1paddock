@@ -1,5 +1,5 @@
 /**
- * Meetup — fans watching a race together, online or in person.
+ * Meetup ->fans watching a race together, online or in person.
  */
 
 import mongoose from 'mongoose'

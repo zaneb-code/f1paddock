@@ -1,20 +1,5 @@
 /**
  * The AI race-prediction provider.
- *
- * One function, getPrediction(), with four implementations behind it. Which
- * one runs is decided by AI_PROVIDER in .env:
- *
- *   heuristic  (default) - no LLM. A transparent points-and-form calculation.
- *                          Used when no API key is configured so the feature
- *                          always works. It is clearly labelled as such in the
- *                          response and in the UI: it is NOT an AI prediction.
- *   gemini     - Google Gemini            (GEMINI_API_KEY)
- *   openai     - OpenAI                   (OPENAI_API_KEY)
- *   anthropic  - Anthropic Claude         (ANTHROPIC_API_KEY)
- *
- * Why the key lives here and not in the React app: anything in frontend code
- * is downloadable by anyone who opens devtools. An API key in the browser is
- * a published API key. That is the whole reason this small server exists.
  */
 
 const PROVIDER = (process.env.AI_PROVIDER || 'heuristic').toLowerCase()
@@ -93,11 +78,6 @@ function parseModelJson(text) {
  *  Heuristic fallback (no LLM)
  * ------------------------------------------------------------------ */
 
-/**
- * Ranks drivers by championship points plus a small bonus for appearing on
- * recent podiums. Deliberately simple and explainable — its job is to keep
- * the feature usable without a key, not to pretend to be a model.
- */
 function heuristicPrediction(context) {
   const { standings = [], recentForm = [] } = context
 
@@ -137,24 +117,33 @@ function heuristicPrediction(context) {
   }
 }
 
-/* ------------------------------------------------------------------
- *  LLM providers
- * ------------------------------------------------------------------ */
+//LLM providers
+
+
+const LLM_TIMEOUT_MS = 20_000
 
 async function callGemini(prompt) {
   const key = process.env.GEMINI_API_KEY
   if (!key) throw new Error('GEMINI_API_KEY is not set')
 
-  const model = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'
+
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // The key goes in a header, not the query string. A URL ends up in
+        // server logs, proxy logs and error reports; a header does not. Same
+        // reason a password never belongs in a GET parameter.
+        'x-goog-api-key': key,
+      },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.7, responseMimeType: 'application/json' },
       }),
+      signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     },
   )
 
@@ -178,6 +167,7 @@ async function callOpenAI(prompt) {
       response_format: { type: 'json_object' },
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   })
 
   if (!response.ok) throw new Error(`OpenAI returned ${response.status}: ${await response.text()}`)
@@ -203,6 +193,7 @@ async function callAnthropic(prompt) {
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }],
     }),
+    signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
   })
 
   if (!response.ok)
