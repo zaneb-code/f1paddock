@@ -1,9 +1,5 @@
 /**
  * Reporting and the stewards' queue.
- *
- * Note where requireModerator sits: on the server, in front of the handler.
- * In Phase 1 the moderator check ran in the browser, which hid the admin page
- * from honest users and stopped nobody who opened devtools.
  */
 
 import { Router } from 'express'

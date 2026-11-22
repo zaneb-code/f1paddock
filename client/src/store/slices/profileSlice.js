@@ -1,21 +1,9 @@
-/**
- * ============================================================
- *  profileSlice — fan profiles, favourites, follows
- * ============================================================
- *
- * The account (email, password, JWT) lives in authSlice and on the server.
- * Everything that makes a profile an *F1* profile lives here: favourite
- * drivers, teams, circuits and eras, who you follow, and the similarity
- * matching that powers "find fans with similar interests".
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as db from '../../api/social'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
 
-/** Called after login — creates the profile row on first ever sign-in. */
 export const loadMyProfile = createAsyncThunk(
   'profile/loadMine',
   async (user, { rejectWithValue }) => {
@@ -186,13 +174,8 @@ const profileSlice = createSlice({
         state.viewedStatus = 'failed'
         state.viewedError = action.payload
       })
-
-      // Both follow actions return the updated viewer profile, and both
-      // need the similar-fans list re-marked so the button flips instantly.
       .addCase(followUser.fulfilled, (state, action) => {
         state.me = action.payload
-        // Guard the shape: a reducer that throws leaves the UI frozen with no
-        // error anywhere, which is far harder to spot than a wrong value.
         const following = action.payload?.following ?? []
 
         state.similar = state.similar.map((row) => ({
@@ -203,9 +186,6 @@ const profileSlice = createSlice({
       .addCase(followEntity.fulfilled, (state, action) => {
         state.me = action.payload
       })
-
-      // Without these the button simply did nothing when the request failed:
-      // no error, no state change, no clue. Surface it instead.
       .addCase(followUser.rejected, (state, action) => {
         state.error = action.payload ?? 'Could not update who you follow.'
       })

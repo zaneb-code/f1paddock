@@ -1,30 +1,3 @@
-/**
- * Form validation — level 1 of 3.
- *
- *   1. THIS FILE          immediate feedback, no round trip
- *   2. route validators   server/src/middleware/validate.js
- *   3. Mongoose schemas   server/src/models/*.js
- *
- * The rules here are deliberately the SAME rules and the same limits as the
- * server's. That is not duplication for its own sake — the two levels do
- * different jobs:
- *
- *   This file exists so a person who leaves the email box empty is told so
- *   instantly, instead of waiting for a round trip to be told something a
- *   form could have known on its own.
- *
- *   The server exists because this file is not a control. It runs in the
- *   visitor's browser, which means it runs on the attacker's computer. It can
- *   be edited in devtools, or skipped entirely with curl. Anything that
- *   matters is checked again on the server, and again by the schema.
- *
- *   If the limits ever disagree, the server wins and the user sees a
- *   confusing error. So when a limit changes in one place, change it in both
- *   — the constants below name every one of them in a single block for
- *   exactly that reason.
- */
-
-/** Every length limit in the app, matching server/src/models/*.js. */
 export const LIMITS = {
   username: { min: 3, max: 20 },
   password: { min: 8, max: 100 },
@@ -46,11 +19,6 @@ const USERNAME = /^[A-Za-z0-9_]+$/
 
 const isBlank = (value) =>
   value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
-
-/**
- * The same rule vocabulary as the server's validate.js, so a schema written
- * for one reads the same as a schema written for the other.
- */
 export const rule = {
   required:
     (message = 'This field is required') =>
@@ -117,13 +85,6 @@ export const rule = {
   matchesField: (otherField, message) => (value, values) =>
     isBlank(value) || value === values?.[otherField] ? null : message,
 }
-
-/**
- * Runs a schema over a values object.
- * Returns { ok, errors } where errors is keyed by field, exactly like the
- * server's reply — so a form can show server and client errors with the
- * same code.
- */
 export function validateForm(schema, values) {
   const errors = {}
 
@@ -139,11 +100,6 @@ export function validateForm(schema, values) {
 
   return { ok: Object.keys(errors).length === 0, errors }
 }
-
-/* ------------------------------------------------------------------ */
-/*  The schemas, one per form                                          */
-/* ------------------------------------------------------------------ */
-
 export const schemas = {
   register: {
     email: [rule.required('Enter your email'), rule.email()],
@@ -233,11 +189,6 @@ export const schemas = {
     ],
   },
 }
-
-/* ------------------------------------------------------------------ */
-/*  Kept for the existing auth forms, now built on the shared rules    */
-/* ------------------------------------------------------------------ */
-
 export function validateRegister(values) {
   return validateForm(schemas.register, values).errors
 }

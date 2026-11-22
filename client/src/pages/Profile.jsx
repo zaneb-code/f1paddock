@@ -1,12 +1,3 @@
-/**
- * Your own profile — the "personalised F1 profile" and "select favourite
- * drivers, teams, circuits and eras" requirements.
- *
- * Favourites are edited by tapping chips built from live API data, so the
- * driver and team lists are always this season's real grid rather than a
- * hardcoded list that goes stale.
- */
-
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

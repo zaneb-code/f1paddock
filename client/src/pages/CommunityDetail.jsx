@@ -1,7 +1,3 @@
-/**
- * One community: its feed, its composer, and a members count.
- */
-
 import { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

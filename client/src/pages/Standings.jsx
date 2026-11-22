@@ -1,8 +1,3 @@
-/**
- * Both championship tables. Drivers and teams you follow are highlighted,
- * and you can follow or unfollow straight from here.
- */
-
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 

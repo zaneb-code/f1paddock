@@ -1,57 +1,26 @@
-/**
- * The opening screen.
- *
- * Shows for a couple of seconds on first paint, then fades out and
- * removes itself from the tree entirely. Because it is mounted inside
- * App (above the Routes) it runs once per page load and never again on
- * a route change — clicking from /races to /standings does not replay it.
- *
- * Three small details worth knowing:
- *
- *  - It unmounts rather than just hiding, so nothing is left sitting on
- *    top of the page swallowing clicks.
- *  - Page scrolling is locked while it is visible, otherwise the page
- *    behind can be scrolled during the hold and you land halfway down.
- *  - Any key or click skips it. Nobody should be forced to watch an
- *    animation twice, least of all whoever is marking this.
- *
- * The timings are the two constants below. HOLD_MS is also handed to CSS
- * as --splash-hold so the loading bar finishes exactly as the fade starts.
- */
-
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-const HOLD_MS = 2400 // how long the mark stays on screen
-const FADE_MS = 650 // how long the fade out takes
-
+const HOLD_MS = 2400
+const FADE_MS = 650 
 export default function Splash() {
-  // 'in' = visible, 'out' = fading, 'gone' = unmounted
   const [phase, setPhase] = useState('in')
   const holdTimer = useRef(null)
   const fadeTimer = useRef(null)
-
-  /** Start the fade. Safe to call twice — only 'in' moves to 'out'. */
   const dismiss = useCallback(() => {
     setPhase((current) => (current === 'in' ? 'out' : current))
   }, [])
-
-  // Hold, then fade.
   useEffect(() => {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     holdTimer.current = setTimeout(dismiss, reduced ? 700 : HOLD_MS)
 
     return () => clearTimeout(holdTimer.current)
   }, [dismiss])
-
-  // Once the fade has run its course, unmount.
   useEffect(() => {
     if (phase !== 'out') return
 
     fadeTimer.current = setTimeout(() => setPhase('gone'), FADE_MS)
     return () => clearTimeout(fadeTimer.current)
   }, [phase])
-
-  // Keep the page behind still while the splash is up.
   useEffect(() => {
     if (phase === 'gone') return
 
@@ -62,8 +31,6 @@ export default function Splash() {
       document.body.style.overflow = previous
     }
   }, [phase])
-
-  // Any key skips it. Clicking is handled on the element itself.
   useEffect(() => {
     if (phase !== 'in') return
 

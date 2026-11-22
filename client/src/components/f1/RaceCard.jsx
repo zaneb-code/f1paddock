@@ -1,11 +1,3 @@
-/**
- * One Grand Prix as a calendar tile — circuit outline, place, date span.
- * Used on the full calendar and on the dashboard's "next races" strip.
- *
- * The outline is a generated shape rather than the real track layout; see
- * CircuitOutline.jsx for why.
- */
-
 import { Link } from 'react-router-dom'
 import CircuitOutline from './CircuitOutline'
 import { formatShortDate, isPast } from '../../utils/format'
@@ -13,8 +5,6 @@ import { formatShortDate, isPast } from '../../utils/format'
 export default function RaceCard({ race, isNext = false }) {
   const finished = isPast(race.startsAt ?? race.date)
 
-  // First and last session of the weekend, so the tile can show a span like
-  // "6 Mar – 8 Mar" without the caller working it out.
   const first = race.schedule?.[0]
   const last = race.schedule?.[race.schedule.length - 1]
 
@@ -23,7 +13,6 @@ export default function RaceCard({ race, isNext = false }) {
       ? `${formatShortDate(first.date)} – ${formatShortDate(last.date)}`
       : formatShortDate(race.date)
 
-  // City if we have it, circuit name otherwise. The city is what fans say.
   const place = race.locality || race.circuitName
 
   return (

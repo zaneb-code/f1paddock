@@ -1,7 +1,3 @@
-/**
- * Another fan's public profile: their favourites and their posts.
- */
-
 import { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

@@ -1,22 +1,3 @@
-/**
- * Catches a crash in the page below it and shows something readable.
- *
- * Without this, one thrown error during render unmounts the entire React
- * tree and the browser is left showing a blank page — no navbar, no message,
- * nothing to act on. That is the worst possible failure for anyone using or
- * marking this: the app looks dead and gives no clue why.
- *
- * It has to be a class. React has no hook equivalent of componentDidCatch,
- * because a function component cannot catch an error thrown by its own
- * children during rendering. This is the one place class syntax is still
- * required.
- *
- * It catches errors thrown while RENDERING, in lifecycle methods and in
- * constructors below it. It does NOT catch errors in event handlers, in
- * async callbacks, or during server requests — those never interrupt a
- * render, so they never blank the screen either.
- */
-
 import { Component } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -25,17 +6,11 @@ export default class ErrorBoundary extends Component {
     super(props)
     this.state = { error: null, componentStack: '' }
   }
-
-  /** Runs when a child throws. Whatever this returns becomes the new state. */
   static getDerivedStateFromError(error) {
     return { error }
   }
-
-  /** Somewhere to log it. In a real deployment this would go to a service. */
   componentDidCatch(error, info) {
     console.error('Caught by ErrorBoundary:', error, info.componentStack)
-    // Kept in state as well as logged, so the component stack is on screen.
-    // "Something went wrong" with no location is not a bug report.
     this.setState({ componentStack: info.componentStack ?? '' })
   }
 

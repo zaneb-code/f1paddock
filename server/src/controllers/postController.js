@@ -1,16 +1,8 @@
-/**
- * Posts: community feeds and race discussion rooms.
- */
-
 import Post from '../models/Post.js'
 import Community from '../models/Community.js'
 import Comment from '../models/Comment.js'
 import { httpError } from '../middleware/errorHandler.js'
 
-/**
- * Turns a post document into the shape the client wants: author name
- * flattened, counts resolved, and whether *you* have liked it.
- */
 function present(post, viewerId, commentCount = 0) {
   const json = post.toJSON()
 
@@ -28,12 +20,6 @@ function present(post, viewerId, commentCount = 0) {
   }
 }
 
-/**
- * GET /api/posts?communityId=…&raceRound=…&author=…&search=…
- *
- * Filtering lives in the query string, never in the path: the path names the
- * resource, the query narrows the view of it.
- */
 export async function listPosts(req, res) {
   const { communityId, communitySlug, raceRound, season, author, search } = req.query
 
@@ -65,7 +51,6 @@ export async function listPosts(req, res) {
     .sort({ createdAt: -1 })
     .limit(100)
 
-  // One aggregate for all the comment counts, rather than a query per post.
   const counts = await Comment.aggregate([
     { $match: { post: { $in: posts.map((post) => post._id) } } },
     { $group: { _id: '$post', count: { $sum: 1 } } },
@@ -78,7 +63,6 @@ export async function listPosts(req, res) {
   })
 }
 
-/** POST /api/posts */
 export async function createPost(req, res) {
   const { body, communityId, raceRound, season } = req.body
 
@@ -104,7 +88,6 @@ export async function createPost(req, res) {
     .json({ post: present(post, req.userId, 0) })
 }
 
-/** GET /api/posts/:id */
 export async function getPost(req, res) {
   const post = await Post.findById(req.params.id)
     .populate('author', 'username')
@@ -116,13 +99,6 @@ export async function getPost(req, res) {
   res.json({ post: present(post, req.userId, commentCount) })
 }
 
-/**
- * DELETE /api/posts/:id
- *
- * Authorisation on the server, where it belongs: you can delete your own
- * post, a moderator can delete anyone's. Phase 1 decided this in the browser,
- * which hid the button and stopped nothing.
- */
 export async function deletePost(req, res) {
   const post = await Post.findById(req.params.id)
   if (!post) throw httpError(404, 'That post no longer exists.')
@@ -134,15 +110,11 @@ export async function deletePost(req, res) {
     return res.status(403).json({ error: 'You can only delete your own posts.' })
   }
 
-  // findOneAndDelete, not deleteOne, because the cascade hook on the model
-  // listens for it — comments and reports go with the post.
   await Post.findOneAndDelete({ _id: post._id })
 
-  // 204: it worked and there is deliberately nothing to send back.
   res.status(204).end()
 }
 
-/** PUT /api/posts/:id/like — the like is the resource, so it gets a noun. */
 export async function toggleLike(req, res) {
   const post = await Post.findById(req.params.id)
     .populate('author', 'username')

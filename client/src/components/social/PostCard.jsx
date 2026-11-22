@@ -1,10 +1,3 @@
-/**
- * One post, with likes, comments and reporting.
- *
- * Comments are loaded only when the thread is opened — a feed of thirty
- * posts should not fetch thirty comment lists nobody looked at.
- */
-
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

@@ -1,16 +1,3 @@
-/**
- * Admin moderation queue — the "admin moderation and reporting" requirement.
- *
- * Reachable only by a moderator account (see MODERATOR_USERNAMES in
- * moderationSlice). A moderator either removes the reported content or
- * dismisses the report.
- *
- * Phase 2 note: the guard here is client-side, which is a convenience, not
- * a security control. When these become real routes, the server must check
- * the user's role on every moderation request — a determined user can always
- * edit client state.
- */
-
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 

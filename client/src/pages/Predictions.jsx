@@ -1,8 +1,3 @@
-/**
- * The prediction page: pick a race, make your call, generate the AI's call,
- * compare the two, and review your past predictions.
- */
-
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

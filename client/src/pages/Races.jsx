@@ -1,7 +1,3 @@
-/**
- * The full season calendar, with search and filters.
- */
-
 import { useEffect, useState, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -38,8 +34,6 @@ export default function Races() {
   useEffect(() => {
     if (status === 'idle') dispatch(fetchSchedule(season))
   }, [dispatch, season, status])
-
-  // useMemo so filtering does not rerun on every keystroke elsewhere.
   const visible = useMemo(() => {
     const now = Date.now()
     let list = races
@@ -76,9 +70,7 @@ export default function Races() {
 
   return (
     <div className="pb-12">
-      {/* ---------------- Season banner ----------------
-          The year carries the page, the way a season poster does. The
-          photograph sits behind it via .photo-hero in index.css. */}
+      {}
       <header className="photo-hero photo-strip border-b border-line">
         <div className="shell py-12 text-center sm:py-16">
           <p className="eyebrow mb-3">Formula 1 world championship</p>

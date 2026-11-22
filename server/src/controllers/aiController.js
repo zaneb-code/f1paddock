@@ -1,14 +1,5 @@
-/**
- * The AI prediction endpoint.
- *
- * This route is the reason the project has a backend at all: a language
- * model needs an API key, and anything in React code is downloadable by
- * anyone who opens devtools. A key in the frontend is a published key.
- */
 
 import { getPrediction, aiProvider } from '../ai/provider.js'
-
-/** GET /api/ai/status — which engine is configured. */
 export function status(_req, res) {
   res.json({
     provider: aiProvider,
@@ -16,7 +7,6 @@ export function status(_req, res) {
   })
 }
 
-/** POST /api/ai/predict */
 export async function predict(req, res) {
   const { race, standings, recentForm } = req.body ?? {}
 

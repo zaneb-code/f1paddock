@@ -1,16 +1,3 @@
-/**
- * Auth routes.
- *
- * Read the middleware chain on each route left to right — it is the request's
- * journey, and the order is deliberate:
- *
- *   rateLimit  →  sanitizeBody  →  validate  →  controller
- *
- * Sanitising before validating means length limits are measured on what will
- * actually be stored, so a 25-character username cannot be smuggled past a
- * 20-character rule by padding it with markup that is about to be stripped.
- */
-
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
 
@@ -21,12 +8,6 @@ import { validate, rule } from '../middleware/validate.js'
 
 const router = Router()
 
-/**
- * Brute force costs an attacker nothing if we let them try forever. Twenty
- * attempts per quarter hour per IP is generous for a person and useless for
- * a script. CORS does not help here at all — it governs what a browser may
- * read, and an attacker uses curl.
- */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 20,

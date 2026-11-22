@@ -1,11 +1,3 @@
-/**
- * Live countdown to a session.
- *
- * The interval is cleaned up when the component unmounts or the target
- * changes — without that, navigating away would leave a timer running and
- * calling setState on a component that no longer exists.
- */
-
 import { useEffect, useState } from 'react'
 import { countdownTo } from '../../utils/format'
 

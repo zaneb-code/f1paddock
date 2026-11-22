@@ -1,8 +1,3 @@
-/**
- * A driver or team rendered as a small chip, tinted with the team colour.
- * Used in standings, prediction pickers and profile favourites.
- */
-
 import { teamColour, teamTint } from '../../utils/teams'
 
 export function DriverChip({ driver, constructorId, selected = false, onClick, size = 'md' }) {

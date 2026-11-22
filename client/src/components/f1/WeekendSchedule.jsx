@@ -1,16 +1,3 @@
-/**
- * The full Grand Prix weekend timetable — the core of the race-information
- * requirement.
- *
- * Sessions come from the API already sorted by start time, which handles both
- * weekend formats without a special case: a normal weekend shows FP1/FP2/FP3
- * then qualifying, a sprint weekend shows FP1, sprint qualifying, the sprint
- * and then qualifying.
- *
- * Times are rendered in the viewer's own timezone, because "when is quali for
- * me" is the only question a fan is actually asking.
- */
-
 import { Tag } from '../ui'
 import { formatSessionDay, formatSessionTime, localTimeZone, isPast } from '../../utils/format'
 
@@ -25,7 +12,6 @@ export default function WeekendSchedule({ race, compact = false }) {
     return <p className="text-sm text-muted">No session times published yet.</p>
   }
 
-  // Group by calendar day so the weekend reads Friday / Saturday / Sunday.
   const days = []
   race.schedule.forEach((session) => {
     const existing = days.find((d) => d.date === session.date)

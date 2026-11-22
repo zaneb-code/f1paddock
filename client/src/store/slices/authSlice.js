@@ -1,23 +1,5 @@
-/**
- * ============================================================
- *  authSlice — account, JWT, and email verification
- * ============================================================
- *
- * Unlike a typical course project, authentication here is real: the token is
- * a genuine JWT signed by the Express server, and registration requires a
- * six-digit code delivered by email. This slice is the client half of that.
- *
- * The registration flow has three states the UI has to handle:
- *
- *   idle        -> nothing in progress
- *   awaiting    -> account created, waiting for the code to be entered
- *   verified    -> code accepted, token issued, user logged in
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { auth, ApiError } from '../../api/backend'
-
-/** Shared error unwrapping, so every rejected action carries the same shape. */
 function toRejection(error) {
   if (error instanceof ApiError) {
     return {
@@ -67,16 +49,6 @@ export const login = createAsyncThunk('auth/login', async (payload, { rejectWith
     return rejectWithValue(toRejection(error))
   }
 })
-
-/**
- * Called once when the app starts, to ask the server who we are.
- *
- * In Phase 1 this checked localStorage for a token first and skipped the
- * request if there was none. There is nothing to check now — the session is
- * an httpOnly cookie that this code cannot read. Only the server can say
- * whether we are logged in, so we always ask. It answers { user: null } for
- * a visitor, which is not an error.
- */
 export const loadSession = createAsyncThunk('auth/loadSession', async (_, { rejectWithValue }) => {
   try {
     return await auth.me()
@@ -84,18 +56,10 @@ export const loadSession = createAsyncThunk('auth/loadSession', async (_, { reje
     return rejectWithValue(toRejection(error))
   }
 })
-
-/**
- * Logging out has to reach the server now: the cookie is httpOnly, so the
- * only way to clear it is to ask the server to send an expired one back.
- * Phase 1 could simply delete a localStorage key.
- */
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   try {
     await auth.logout()
   } catch {
-    // Even if the request fails, clear the local state — the user asked to
-    // leave, and the cookie expires on its own.
   }
   return true
 })
@@ -112,7 +76,7 @@ const initialState = {
   fieldErrors: null,
   notice: null,
 
-  // Registration: which email is waiting for a code, if any
+
   pendingEmail: null,
   verificationStage: 'idle', // 'idle' | 'awaiting' | 'verified'
   lastDelivery: null, // how the code was sent (console / ethereal / smtp)
@@ -137,8 +101,6 @@ const authSlice = createSlice({
       state.fieldErrors = null
       state.notice = null
     },
-
-    /** Lets the user go back from the code screen to edit their details. */
     cancelVerification(state) {
       state.pendingEmail = null
       state.verificationStage = 'idle'
@@ -146,7 +108,7 @@ const authSlice = createSlice({
       state.fieldErrors = null
     },
 
-    /** Login can discover an unverified account and redirect into verification. */
+   
     startVerification(state, action) {
       state.pendingEmail = action.payload
       state.verificationStage = 'awaiting'
@@ -155,7 +117,6 @@ const authSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // ---- register ----
       .addCase(register.pending, (state) => {
         state.status = 'loading'
         state.error = null
@@ -227,9 +188,6 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.payload?.message ?? 'Could not log in.'
-
-        // Logging in with an unverified account sends you to the code screen
-        // rather than leaving you stuck on a refusal you cannot act on.
         if (action.payload?.needsVerification) {
           state.pendingEmail = action.payload.email
           state.verificationStage = 'awaiting'
@@ -258,7 +216,6 @@ const authSlice = createSlice({
 export const { logout, clearAuthMessages, cancelVerification, startVerification } =
   authSlice.actions
 
-/* ---------- Selectors ---------- */
 export const selectUser = (state) => state.auth.user
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated
 export const selectAuthStatus = (state) => state.auth.status

@@ -1,19 +1,3 @@
-/**
- * ============================================================
- *  predictionsSlice — user predictions, AI predictions, scoring
- * ============================================================
- *
- * Two kinds of prediction live here and they are deliberately kept apart:
- *
- *   myPredictions  — what human users picked, stored in the mock DB
- *   aiPrediction   — what the server's AI (or heuristic) suggested
- *
- * They are shown side by side rather than merged. The point of the feature,
- * as specified, is the comparison: seeing the machine's answer next to your
- * own is what makes a prediction interesting, and the leaderboard only ever
- * scores humans.
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as db from '../../api/social'
 import { ai } from '../../api/backend'
@@ -21,9 +5,6 @@ import { fetchRecentForm } from '../../api/jolpica'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
-
-/* ---------- Human predictions ---------- */
-
 export const loadMyPredictions = createAsyncThunk(
   'predictions/loadMine',
   async (userId, { rejectWithValue }) => {
@@ -56,14 +37,6 @@ export const submitPrediction = createAsyncThunk(
     }
   },
 )
-
-/**
- * Scores one prediction against the real podium.
- *
- * In Phase 2 this runs on the server when results land. For now the client
- * triggers it from the race page once the result exists, which keeps the
- * scoring rules visible and testable.
- */
 export const scoreMyPrediction = createAsyncThunk(
   'predictions/score',
   async ({ predictionId, actualPodium, actualPole }, { rejectWithValue }) => {
@@ -99,22 +72,10 @@ export const loadAiStatus = createAsyncThunk(
   },
 )
 
-/**
- * Asks the server for an AI prediction.
- *
- * The client assembles the context — the race, the standings it already has
- * in Redux, and the podiums from the last three rounds — and posts it up.
- * The server does not refetch any of that, so one user action costs one
- * request to our API plus (at most) one to the LLM.
- */
 export const requestAiPrediction = createAsyncThunk(
   'predictions/requestAi',
   async ({ race, standings }, { rejectWithValue }) => {
     try {
-      // Recent form is extra context for the prediction, not a requirement.
-      // If the F1 archive is slow, rate limited or unreachable, generate the
-      // prediction without it rather than failing the whole request — the
-      // standings alone are enough to produce an answer.
       let recentForm = []
       try {
         recentForm = await fetchRecentForm(race.season, Math.max(0, race.round - 1), 3)
@@ -142,9 +103,6 @@ export const requestAiPrediction = createAsyncThunk(
         recentForm,
       })
 
-      // The server echoes the race back on its own, and its copy is richer
-      // (name, circuit, date). Keep it, and only synthesise one if it is
-      // missing, so the cache key below can never be built from undefined.
       return {
         ...prediction,
         race: prediction.race ?? { season: String(race.season), round: String(race.round) },
@@ -165,8 +123,6 @@ const initialState = {
   leaderboard: [],
   leaderboardStatus: 'idle',
 
-  // AI prediction, keyed by "season-round" so switching races does not
-  // show the previous race's answer while the new one loads.
   aiByRace: {},
   aiStatus: 'idle',
   aiError: null,
@@ -248,11 +204,6 @@ const predictionsSlice = createSlice({
       })
       .addCase(requestAiPrediction.fulfilled, (state, action) => {
         state.aiStatus = 'succeeded'
-
-        // Read defensively. If this destructured action.payload.race directly
-        // and the shape ever drifted, the reducer would throw, Immer would
-        // discard the whole draft including the line above, and the spinner
-        // would run forever with no error logged anywhere.
         const { season, round } = action.payload?.race ?? {}
         if (season == null || round == null) return
 

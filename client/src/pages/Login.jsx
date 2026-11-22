@@ -1,13 +1,3 @@
-/**
- * Login.
- *
- * One special case worth noting: if the account exists but was never
- * verified, the server replies 403 with needsVerification. The auth slice
- * turns that into a verification stage, and this page redirects to /register
- * where the code screen is waiting — rather than leaving the user staring at
- * a refusal they cannot act on.
- */
-
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

@@ -1,6 +1,3 @@
-/**
- * Meetups: fans arranging to watch a race together.
- */
 
 import Meetup from '../models/Meetup.js'
 import { httpError } from '../middleware/errorHandler.js'
@@ -17,7 +14,6 @@ function present(meetup, viewerId) {
   }
 }
 
-/** GET /api/meetups?raceRound=21&upcoming=true */
 export async function listMeetups(req, res) {
   const { raceRound, season, upcoming } = req.query
 
@@ -34,7 +30,6 @@ export async function listMeetups(req, res) {
   res.json({ count: meetups.length, meetups: meetups.map((m) => present(m, req.userId)) })
 }
 
-/** POST /api/meetups */
 export async function createMeetup(req, res) {
   const { title, description, location, isOnline, startsAt, raceRound, season, capacity } = req.body
 
@@ -48,7 +43,6 @@ export async function createMeetup(req, res) {
     season: season ?? null,
     capacity: capacity ?? null,
     host: req.userId,
-    // Hosting is attending.
     attendees: [req.userId],
   })
 
@@ -59,8 +53,6 @@ export async function createMeetup(req, res) {
     .location(`/api/meetups/${meetup.id}`)
     .json({ meetup: present(meetup, req.userId) })
 }
-
-/** PUT /api/meetups/:id/attendance */
 export async function toggleAttendance(req, res) {
   const meetup = await Meetup.findById(req.params.id).populate('host', 'username')
   if (!meetup) throw httpError(404, 'That meetup no longer exists.')
@@ -68,7 +60,6 @@ export async function toggleAttendance(req, res) {
   const attending = meetup.attendees.some((id) => (id._id ?? id).equals(req.userId))
 
   if (!attending && meetup.capacity && meetup.attendees.length >= meetup.capacity) {
-    // 409, not 400: the request is perfectly valid, the meetup is just full.
     return res.status(409).json({ error: 'That meetup is full.' })
   }
 
@@ -81,7 +72,6 @@ export async function toggleAttendance(req, res) {
   res.json({ meetup: present(meetup, req.userId), attending: !attending })
 }
 
-/** DELETE /api/meetups/:id — the host or a steward. */
 export async function deleteMeetup(req, res) {
   const meetup = await Meetup.findById(req.params.id)
   if (!meetup) throw httpError(404, 'That meetup no longer exists.')

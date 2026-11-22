@@ -1,9 +1,5 @@
 /**
- * Comment — a reply to a post.
- *
- * One-to-many: a post has many comments, each comment belongs to one post.
- * The `post` field is the foreign key, indexed because every time a post is
- * opened we query comments by it.
+ * Comment
  */
 
 import mongoose from 'mongoose'

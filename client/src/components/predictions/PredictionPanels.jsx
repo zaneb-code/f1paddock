@@ -1,11 +1,3 @@
-/**
- * The prediction feature: the human form, the AI panel, and the comparison
- * between them.
- *
- * The two are kept visually distinct on purpose. The brief's point was that
- * an AI prediction on its own is dull — what makes it interesting is seeing
- * the machine's answer next to your own and deciding whether you agree.
- */
 
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -28,10 +20,6 @@ import {
 
 const SLOTS = ['1st', '2nd', '3rd']
 
-/* ------------------------------------------------------------------
- *  Human prediction form
- * ------------------------------------------------------------------ */
-
 export function PredictionForm({ race, standings, existing, locked }) {
   const dispatch = useDispatch()
   const user = useSelector(selectUser)
@@ -42,7 +30,7 @@ export function PredictionForm({ race, standings, existing, locked }) {
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  // If the saved prediction arrives after this mounted, adopt it.
+
   useEffect(() => {
     if (existing) {
       setPodium(existing.podium)
@@ -71,21 +59,18 @@ export function PredictionForm({ race, standings, existing, locked }) {
     )
   }
 
-  /** Clicking a driver fills the slot currently being edited. */
   function choose(driverId) {
     setError(null)
 
     const next = [...podium]
 
-    // If the driver is already somewhere on the podium, move them rather
-    // than allowing a duplicate.
+   
     const existingIndex = next.indexOf(driverId)
     if (existingIndex >= 0) next[existingIndex] = null
 
     next[slot] = driverId
     setPodium(next)
 
-    // Advance to the next empty slot so three clicks fill the podium.
     const nextEmpty = next.findIndex((d) => !d)
     setSlot(nextEmpty === -1 ? slot : nextEmpty)
   }
@@ -127,7 +112,7 @@ export function PredictionForm({ race, standings, existing, locked }) {
         in the wrong slot, 5 for pole.
       </p>
 
-      {/* The three slots */}
+      {}
       <div className="mb-5 grid grid-cols-3 gap-2">
         {SLOTS.map((label, index) => {
           const driverId = podium[index]
@@ -207,11 +192,6 @@ export function PredictionForm({ race, standings, existing, locked }) {
     </form>
   )
 }
-
-/* ------------------------------------------------------------------
- *  AI prediction panel
- * ------------------------------------------------------------------ */
-
 export function AiPredictionPanel({ race, standings }) {
   const dispatch = useDispatch()
   const user = useSelector(selectUser)
@@ -327,11 +307,6 @@ export function AiPredictionPanel({ race, standings }) {
   )
 }
 
-/* ------------------------------------------------------------------
- *  Comparison
- * ------------------------------------------------------------------ */
-
-/** Shows where you and the machine agree and where you differ. */
 export function PredictionComparison({ mine, ai, standings }) {
   if (!mine || !ai) return null
 
@@ -389,11 +364,6 @@ export function PredictionComparison({ mine, ai, standings }) {
     </div>
   )
 }
-
-/* ------------------------------------------------------------------
- *  Leaderboard
- * ------------------------------------------------------------------ */
-
 export function LeaderboardTable({ rows, currentUserId }) {
   if (!rows.length) {
     return (

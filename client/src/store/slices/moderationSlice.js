@@ -1,24 +1,9 @@
-/**
- * ============================================================
- *  moderationSlice — reporting and admin moderation
- * ============================================================
- *
- * Any signed-in user can report a post or comment. A moderator sees the
- * queue and either removes the content or dismisses the report.
- *
- * Who counts as a moderator: in Phase 1, any account whose username is in
- * MODERATOR_USERNAMES below. Phase 2 replaces that with a `role` field on
- * the user document, checked by the server on every moderation route —
- * a client-side check alone is a convenience, never a security control.
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as db from '../../api/social'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
 
-/** Demo moderator accounts. Register with one of these to see the admin page. */
 export const MODERATOR_USERNAMES = ['admin', 'moderator', 'steward']
 
 export const reportContent = createAsyncThunk(
@@ -99,9 +84,6 @@ const moderationSlice = createSlice({
         state.notice =
           action.payload.status === 'actioned' ? 'Content removed.' : 'Report dismissed.'
       })
-
-      // Without this a rejected request changed nothing and said nothing —
-      // the buttons looked broken rather than failed.
       .addCase(resolveReport.rejected, (state, action) => {
         state.error = action.payload ?? 'Could not update that report.'
       })

@@ -1,18 +1,8 @@
-/**
- * Cards for communities, fans and meetups. Small presentational pieces that
- * take callbacks rather than dispatching themselves, so the page owns the
- * Redux wiring and these stay easy to reuse.
- */
 
 import { Link } from 'react-router-dom'
 import { Avatar, Tag } from '../ui'
 import { teamColour } from '../../utils/teams'
 import { formatSessionDay, formatSessionTime, pluralise } from '../../utils/format'
-
-/* ------------------------------------------------------------------
- *  Community
- * ------------------------------------------------------------------ */
-
 export function CommunityCard({ community, isMember, onToggleMember, canJoin }) {
   const accent =
     community.type === 'team'
@@ -20,7 +10,6 @@ export function CommunityCard({ community, isMember, onToggleMember, canJoin }) 
       : community.type === 'driver'
         ? 'var(--color-accent)'
         : 'var(--color-dim)'
-
   return (
     <div className="card card-hover flex flex-col overflow-hidden">
       <span className="h-1 w-full" style={{ backgroundColor: accent }} aria-hidden="true" />
@@ -59,16 +48,6 @@ export function CommunityCard({ community, isMember, onToggleMember, canJoin }) 
     </div>
   )
 }
-
-/* ------------------------------------------------------------------
- *  Fan
- * ------------------------------------------------------------------ */
-
-/**
- * A fan in the discover list.
- * `shared` lists what you have in common, which is what makes the match
- * meaningful rather than just a number.
- */
 export function FanCard({ profile, score, shared, isFollowing, onToggleFollow, canFollow }) {
   const sharedBits = [
     ...(shared?.drivers ?? []).map((d) => ({ label: d.replace(/_/g, ' '), kind: 'driver' })),
@@ -128,11 +107,6 @@ export function FanCard({ profile, score, shared, isFollowing, onToggleFollow, c
     </div>
   )
 }
-
-/* ------------------------------------------------------------------
- *  Meetup
- * ------------------------------------------------------------------ */
-
 export function MeetupCard({ meetup, isAttending, onToggleAttend, canAttend }) {
   const full = meetup.capacity && meetup.attendeeIds.length >= meetup.capacity
   const online = meetup.mode === 'online'

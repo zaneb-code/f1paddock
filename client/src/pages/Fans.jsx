@@ -1,10 +1,3 @@
-/**
- * Discover fans — the "find fans with similar F1 interests" requirement.
- *
- * Two modes: a ranked list of people who share your favourites, and a plain
- * searchable directory of everyone.
- */
-
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

@@ -1,19 +1,3 @@
-/**
- * ============================================================
- *  f1Slice — everything from the Jolpica F1 API
- * ============================================================
- *
- * This is the "race information API" requirement. It holds:
- *   - the full season schedule, each race with its weekend timetable
- *   - drivers', constructors' and circuit lists for the current season
- *   - both championship tables
- *   - per-race results and qualifying order, cached by round
- *
- * Caching note: raceDetail, results and qualifying are stored in objects
- * keyed by round. Visiting a race page twice does not refetch, because a
- * completed race's result never changes.
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as f1 from '../../api/jolpica'
 import { CURRENT_SEASON } from '../../api/jolpica'
@@ -36,7 +20,6 @@ export const fetchStandings = createAsyncThunk(
   'f1/fetchStandings',
   async (season = CURRENT_SEASON, { rejectWithValue }) => {
     try {
-      // Both tables at once — they are always shown together.
       const [drivers, constructors] = await Promise.all([
         f1.fetchDriverStandings(season),
         f1.fetchConstructorStandings(season),
@@ -63,13 +46,6 @@ export const fetchGrid = createAsyncThunk(
     }
   },
 )
-
-/**
- * A race page needs three things that may or may not exist yet: the race
- * itself, its result, and its qualifying order. Promise.allSettled means a
- * race that has not happened yet still loads — the two missing pieces just
- * come back empty instead of failing the whole page.
- */
 export const fetchRaceDetail = createAsyncThunk(
   'f1/fetchRaceDetail',
   async ({ season, round }, { rejectWithValue }) => {
@@ -123,7 +99,6 @@ const f1Slice = createSlice({
   initialState,
   reducers: {
     setSeason(state, action) {
-      // Changing season invalidates everything cached for the old one.
       state.season = action.payload
       state.races = []
       state.scheduleStatus = 'idle'
@@ -226,17 +201,11 @@ export const selectGridStatus = (state) => state.f1.gridStatus
 export const selectDetailStatus = (state) => state.f1.detailStatus
 export const selectDetailError = (state) => state.f1.detailError
 export const selectRaceDetail = (round) => (state) => state.f1.raceDetail[Number(round)] ?? null
-
-/**
- * The next race that has not started yet. Drives the dashboard countdown
- * and decides which race the prediction form defaults to.
- */
 export const selectNextRace = (state) => {
   const now = Date.now()
   return state.f1.races.find((race) => new Date(race.startsAt ?? race.date).getTime() > now) ?? null
 }
 
-/** The most recently completed race. */
 export const selectLastRace = (state) => {
   const now = Date.now()
   const past = state.f1.races.filter(
@@ -244,11 +213,7 @@ export const selectLastRace = (state) => {
   )
   return past.length ? past[past.length - 1] : null
 }
-
-/** Championship leader, for the dashboard summary. */
 export const selectChampionshipLeader = (state) => state.f1.driverStandings[0] ?? null
-
-/** Look up a driver by id across whichever list has loaded. */
 export const selectDriverById = (driverId) => (state) => {
   if (!driverId) return null
   return (

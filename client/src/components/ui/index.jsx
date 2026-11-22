@@ -1,19 +1,5 @@
-/**
- * The shared UI kit.
- *
- * Everything small and reusable lives in this one file so imports stay
- * short: one import line gives a page its buttons, cards and states.
- * Anything bigger than ~40 lines, or specific to one feature, gets its
- * own file in f1/, social/ or predictions/.
- */
-
 import { Link } from 'react-router-dom'
 import { avatarHue, initials } from '../../utils/format'
-
-/* ------------------------------------------------------------------
- *  Loading
- * ------------------------------------------------------------------ */
-
 export function Spinner({ className = 'h-5 w-5' }) {
   return (
     <span
@@ -31,8 +17,6 @@ export function Loading({ label = 'Loading…', className = 'py-16' }) {
     </div>
   )
 }
-
-/** Grey placeholder blocks shaped roughly like the content that is coming. */
 export function SkeletonList({ rows = 3, className = '' }) {
   return (
     <div className={`space-y-3 ${className}`} aria-hidden="true">
@@ -60,11 +44,6 @@ export function SkeletonGrid({ count = 6, className = '' }) {
     </div>
   )
 }
-
-/* ------------------------------------------------------------------
- *  States
- * ------------------------------------------------------------------ */
-
 export function ErrorState({ title = 'Something went wrong', message, onRetry }) {
   return (
     <div className="card border-l-2 border-l-stop p-6" role="alert">
@@ -118,11 +97,6 @@ export function Notice({ tone = 'info', children, onDismiss }) {
     </div>
   )
 }
-
-/* ------------------------------------------------------------------
- *  Small pieces
- * ------------------------------------------------------------------ */
-
 export function Avatar({ name = '', size = 'md', className = '' }) {
   const hue = avatarHue(name)
   const sizes = {
@@ -245,8 +219,7 @@ export function Stat({ label, value, tone = 'chalk' }) {
   return (
     <div className="card px-2 py-3 text-center">
       <p className={`font-display text-2xl font-bold ${tones[tone]}`}>{value}</p>
-      {/* Not `.eyebrow`: at 0.18em tracking a word like "Favourites" is wider
-          than a third of the sidebar and spills out of the card. */}
+      {}
       <p className="mt-0.5 font-display text-[0.6rem] font-semibold tracking-[0.06em] text-dim uppercase">
         {label}
       </p>
@@ -254,7 +227,6 @@ export function Stat({ label, value, tone = 'chalk' }) {
   )
 }
 
-/** Simple centred modal. Closes on backdrop click or Escape. */
 export function Modal({ open, onClose, title, children, footer }) {
   if (!open) return null
 

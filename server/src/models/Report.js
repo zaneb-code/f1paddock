@@ -1,7 +1,3 @@
-/**
- * Report — a piece of content a user has flagged for a moderator.
- */
-
 import mongoose from 'mongoose'
 
 const reportSchema = new mongoose.Schema(
@@ -43,8 +39,6 @@ const reportSchema = new mongoose.Schema(
       default: 'open',
       index: true,
     },
-
-    /** What the moderator did about it. */
     action: {
       type: String,
       enum: {
@@ -79,7 +73,6 @@ const reportSchema = new mongoose.Schema(
   },
 )
 
-// The moderation queue is always "open reports, newest first".
 reportSchema.index({ status: 1, createdAt: -1 })
 
 export default mongoose.model('Report', reportSchema)

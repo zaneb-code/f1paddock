@@ -1,12 +1,3 @@
-/**
- * The personalised F1 dashboard — the landing page.
- *
- * Signed out it works as a front page: next race, countdown, standings.
- * Signed in it becomes personal: your followed drivers highlighted in the
- * standings, your prediction status for the next race, your communities,
- * and meetups you have joined.
- */
-
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -83,19 +74,13 @@ export default function Dashboard() {
     .slice(0, 3)
 
   const followedDriverIds = profile?.followedDrivers ?? []
-
-  // For the hero strip: who leads, and by how much.
   const leader = standings[0]
   const gapToSecond =
     standings.length > 1 ? Number(standings[0].points) - Number(standings[1].points) : 0
 
   return (
     <div>
-      {/* ---------------- Hero ----------------
-          Full bleed: it sits outside .shell so the photograph reaches the
-          window edges. The image and its gradients come from .photo-hero
-          in index.css rather than an <img>, so no layout shift while it
-          loads and the text never has to wait for it. */}
+      {}
       <section className="photo-hero border-b border-line">
         <div className="shell pt-16 pb-10 sm:pt-24 sm:pb-12">
           <p className="eyebrow mb-3">{season} Formula 1 season</p>
@@ -147,9 +132,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Three cards across the foot of the hero: what is next, who is
-            winning, what just happened. Translucent so the photograph
-            still reads behind them. */}
+        {}
         <div className="shell pb-12">
           <div className="grid gap-3 sm:grid-cols-3">
             {/* --- Next race --- */}

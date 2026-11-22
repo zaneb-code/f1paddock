@@ -7,13 +7,9 @@
 
 import mongoose from 'mongoose'
 
-/** A reusable definition for the arrays of ids we store as favourites. */
 const idList = {
   type: [String],
   default: [],
-  // Caps the array so a scripted client cannot push a million entries into
-  // one document. Mongo documents have a 16MB ceiling; this keeps us far
-  // from it and keeps the fan-matching query fast.
   validate: {
     validator: (list) => list.length <= 60,
     message: 'You can only keep up to 60 favourites in one category',
@@ -27,7 +23,7 @@ const profileSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
       unique: true,
-      immutable: true, // a profile can never be moved to another account
+      immutable: true,
     },
 
     username: {

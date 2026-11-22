@@ -1,7 +1,3 @@
-/**
- * Prediction leaderboard — total points per fan across scored races.
- */
-
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

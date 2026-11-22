@@ -1,27 +1,4 @@
-/**
- * The social data layer, talking to the real API.
- *
- * This file replaces mockDb.js, which kept everything in localStorage. It
- * exports the same function names, takes the same arguments and returns the
- * same shapes, so the Redux slices change by one line each — their import —
- * and nothing else in the app had to move.
- *
- * That was the point of writing mockDb the way it was in Phase 1: async,
- * promise-based, with the signatures a real API would need. The mock was a
- * contract, not a shortcut, and this is the file that honours it.
- *
- * Its other job is translating between two vocabularies. The API speaks in
- * flattened fields — `authorName`, `isOnline`, `totalPoints` — because that
- * is what travels well over the wire. The components were written against
- * nested objects — `post.author.username`, `meetup.mode`. The mapping lives
- * here, in one place, rather than being sprinkled through twenty components.
- */
-
 import { request, query } from './http.js'
-
-/* ------------------------------------------------------------------ */
-/*  shape adapters                                                     */
-/* ------------------------------------------------------------------ */
 
 function asPost(post) {
   if (!post) return null
@@ -52,18 +29,10 @@ function asMeetup(meetup) {
   return {
     ...meetup,
     host: { id: meetup.hostId, username: meetup.hostName, displayName: meetup.hostName },
-    // The database stores a boolean; the UI was written around a word.
     mode: meetup.isOnline ? 'online' : 'in-person',
   }
 }
 
-/**
- * The server stores a fan's follows as User ids in `followedUsers`, and keys
- * its profile routes on username. The UI was written against the Phase 1 mock,
- * which kept a flat `following` array. Rather than rewrite every component,
- * normalise here: expose `following` (user ids, as strings) alongside the
- * `userId` that each comparison should use.
- */
 function asProfile(profile) {
   if (!profile) return null
 
@@ -73,7 +42,6 @@ function asProfile(profile) {
   }
 }
 
-/** The server groups shared favourites by field name; the UI wants short keys. */
 function asMatch(match) {
   return {
     profile: asProfile(match.profile),
@@ -88,7 +56,6 @@ function asMatch(match) {
   }
 }
 
-/** Turns a 404 into null, for the lookups where "not found" is not an error. */
 async function orNull(promise) {
   try {
     return await promise
@@ -97,10 +64,6 @@ async function orNull(promise) {
     throw error
   }
 }
-
-/* ------------------------------------------------------------------ */
-/*  Profiles                                                           */
-/* ------------------------------------------------------------------ */
 
 export async function ensureProfile() {
   const { profile } = await request.get('/profiles/me')
@@ -123,17 +86,11 @@ export async function listProfiles() {
 }
 
 export async function updateProfile(_userId, patch) {
-  // The user id is not sent: the server takes it from the session cookie.
-  // A client that could name whose profile to edit would be a client that
-  // could edit anyone's.
   const { profile } = await request.patch('/profiles/me', patch)
   return asProfile(profile)
 }
 
 export async function toggleFollowUser(_viewerId, target) {
-  // `target` is a USERNAME. The route is /profiles/:username/follow and the
-  // controller resolves it to a User — passing a Profile id here 404s, because
-  // a profile's id is not its owner's id.
   const { profile } = await request.put(`/profiles/${encodeURIComponent(target)}/follow`)
   return asProfile(profile)
 }
@@ -149,10 +106,6 @@ export async function findSimilarFans() {
   const { matches } = await request.get('/profiles/me/similar')
   return matches.map(asMatch)
 }
-
-/* ------------------------------------------------------------------ */
-/*  Communities                                                        */
-/* ------------------------------------------------------------------ */
 
 export async function listCommunities() {
   const { communities } = await request.get('/communities')
@@ -180,10 +133,6 @@ export async function toggleCommunityMembership(communityId) {
   )
   return community
 }
-
-/* ------------------------------------------------------------------ */
-/*  Posts and comments                                                 */
-/* ------------------------------------------------------------------ */
 
 export async function listPosts(filters = {}) {
   const { posts } = await request.get(
@@ -230,10 +179,6 @@ export async function createComment(payload) {
   return asComment(comment)
 }
 
-/* ------------------------------------------------------------------ */
-/*  Meetups                                                            */
-/* ------------------------------------------------------------------ */
-
 export async function listMeetups() {
   const { meetups } = await request.get('/meetups')
   return meetups.map(asMeetup)
@@ -258,12 +203,7 @@ export async function toggleMeetupAttendance(meetupId) {
   return asMeetup(meetup)
 }
 
-/* ------------------------------------------------------------------ */
-/*  Predictions                                                        */
-/* ------------------------------------------------------------------ */
-
 export async function listPredictions({ season, round } = {}) {
-  // Always your own: the route reads the user from the session.
   const { predictions } = await request.get(`/predictions/me${query({ season, round })}`)
   return predictions
 }
@@ -298,10 +238,6 @@ export async function getLeaderboard() {
   }))
 }
 
-/* ------------------------------------------------------------------ */
-/*  Moderation                                                         */
-/* ------------------------------------------------------------------ */
-
 export async function createReport(payload) {
   const { report } = await request.post('/reports', {
     targetType: payload.targetType,
@@ -311,20 +247,6 @@ export async function createReport(payload) {
   return report
 }
 
-/**
- * Moderation has two vocabularies and they have to be translated here.
- *
- * The UI thinks in three statuses — open, actioned, dismissed — which is how
- * the Phase 1 mock stored them. The database splits that into a status
- * (open | resolved) plus the action taken (removed | dismissed), which is the
- * better model: "resolved" is the state the report is in, "removed" is what
- * the steward did about it. One report that was dismissed and one whose post
- * was deleted are both resolved, and the database should say so.
- *
- * So translate at the boundary instead of teaching either side the other's
- * words. Without this the Hide and Dismiss buttons send verbs the server's
- * validator rejects outright, and nothing happens at all.
- */
 function asReport(report) {
   if (!report) return null
 
@@ -338,17 +260,11 @@ function asReport(report) {
   return {
     ...report,
     status,
-
-    // The mock exposed the reported item as `target` plus a `targetAuthor`.
-    // The server sends a `preview` instead — same data, different names — so
-    // `report.target` was always undefined and the queue claimed every single
-    // report's content "no longer exists", even for posts still sitting there.
     target: report.preview ? { body: report.preview.body, removed: false } : null,
     targetAuthor: report.preview?.author ? { displayName: report.preview.author } : null,
   }
 }
 
-/** What the buttons say -> what the schema's enum allows. */
 const MODERATION_ACTIONS = { hide: 'removed', dismiss: 'dismissed' }
 
 export async function listReports() {

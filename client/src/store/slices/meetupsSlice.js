@@ -1,13 +1,3 @@
-/**
- * ============================================================
- *  meetupsSlice — create and join F1 fan meetups
- * ============================================================
- *
- * A meetup is either online (a voice chat during a session) or in person
- * (a watch party). It can optionally be tied to a race round, which is how
- * the race page knows to show "2 meetups for this Grand Prix".
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as db from '../../api/social'
 

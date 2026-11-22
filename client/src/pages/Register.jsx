@@ -1,14 +1,3 @@
-/**
- * Registration — a two-step flow because of the email-verification requirement.
- *
- *   Step 1  details form   -> POST /api/auth/register -> server emails a code
- *   Step 2  six-digit code -> POST /api/auth/verify   -> JWT issued, logged in
- *
- * Which step is showing is driven by `verificationStage` in Redux rather than
- * local state, so a login attempt on an unverified account can drop the user
- * straight into step 2 from a different page.
- */
-
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -207,12 +196,8 @@ export default function Register() {
   )
 }
 
-/* ------------------------------------------------------------------
- *  The code entry screen
- * ------------------------------------------------------------------ */
-
 function VerifyStep({ email, busy, error, notice, delivery, onVerify, onResend, onBack }) {
-  // One input per digit, so pasting a code and typing both feel right.
+
   const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const inputs = useRef([])
 
@@ -223,7 +208,6 @@ function VerifyStep({ email, busy, error, notice, delivery, onVerify, onResend, 
   function setDigit(index, value) {
     const clean = value.replace(/\D/g, '')
 
-    // Handle a pasted six-digit code landing in one box.
     if (clean.length > 1) {
       const next = clean.slice(0, 6).split('')
       setDigits([...next, ...Array(6 - next.length).fill('')])

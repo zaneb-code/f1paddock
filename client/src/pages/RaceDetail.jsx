@@ -1,11 +1,3 @@
-/**
- * One Grand Prix: the full weekend schedule, results and qualifying order
- * when they exist, the race discussion room, and any meetups tied to it.
- *
- * The round number comes from the URL, so the page is shareable and survives
- * a refresh.
- */
-
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'

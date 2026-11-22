@@ -1,11 +1,3 @@
-/**
- * Post routes, and the comment collection nested inside them.
- *
- * Nesting one level, and no further. `/api/posts/:postId/comments` is right
- * because a comment list only exists inside a post. Acting on a single
- * comment uses the shallow `/api/comments/:id`, which cannot contradict
- * itself the way `/api/posts/7/comments/3` can.
- */
 
 import { Router } from 'express'
 

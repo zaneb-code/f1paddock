@@ -1,28 +1,3 @@
-/**
- * ============================================================
- *  App — routing
- * ============================================================
- *
- *   /                   Dashboard       personalised F1 dashboard
- *   /races              Races           full season calendar
- *   /races/:round       RaceDetail      weekend schedule, results, discussion
- *   /standings          Standings       both championship tables
- *   /communities        Communities     browse and create
- *   /communities/:slug  CommunityDetail one community's feed
- *   /predictions        Predictions     PROTECTED — your picks + the AI's
- *   /leaderboard        Leaderboard     prediction scores
- *   /meetups            Meetups         create and join
- *   /fans               Fans            similar-interest matching
- *   /fans/:username     FanProfile      a fan's public profile
- *   /profile            Profile         PROTECTED — your favourites
- *   /admin              Admin           MODERATORS ONLY
- *   /login /register    auth            LOGGED-OUT ONLY
- *   *                   NotFound
- *
- * Splash is mounted above the Routes: it plays once on page load and
- * unmounts itself, so it never interrupts navigation between pages.
- */
-
 import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -58,28 +33,26 @@ export default function App() {
   const dispatch = useDispatch()
   const user = useSelector(selectUser)
 
-  // On first load, ask the server whether the stored JWT is still valid.
+ 
   useEffect(() => {
     dispatch(loadSession())
   }, [dispatch])
 
-  // Once we know who is signed in, make sure their F1 profile row exists.
+ 
   useEffect(() => {
     if (user) dispatch(loadMyProfile(user))
   }, [dispatch, user])
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Opening screen. Mounted here rather than inside a page so it plays
-          once per page load and not again on every route change. */}
+      {}
       <Splash />
 
       <ScrollToTop />
       <Navbar />
 
       <main className="flex-1">
-        {/* A crash inside a page is caught here, so the navbar and footer
-            survive and the user is told what happened. */}
+        {}
         <ErrorBoundary>
           <Routes>
           <Route path="/" element={<Dashboard />} />

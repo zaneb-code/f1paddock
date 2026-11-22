@@ -1,28 +1,13 @@
-/**
- * Race predictions and the leaderboard.
- *
- * Scoring moved to the server in Phase 2. In Phase 1 it ran in a reducer in
- * the browser, which meant the score was computed by the same machine that
- * benefits from it — fine for a demo, meaningless as a competition. Points
- * are now calculated here, from the real result, and written to the database.
- */
-
 import Prediction from '../models/Prediction.js'
 import User from '../models/User.js'
 import { httpError } from '../middleware/errorHandler.js'
 
-/** Points: exact placing, right driver in the wrong place, and pole. */
 const POINTS = {
   exactPlacing: 10,
   rightDriverWrongPlace: 4,
   pole: 5,
 }
 
-/**
- * Compares a predicted podium against the real one.
- * Pure arithmetic, no database — which makes it easy to reason about and
- * easy to test.
- */
 export function scorePodium(predicted = [], actual = [], predictedPole = null, actualPole = null) {
   let points = 0
   const breakdown = []
@@ -62,9 +47,6 @@ export function scorePodium(predicted = [], actual = [], predictedPole = null, a
   return { points, breakdown }
 }
 
-/* ------------------------------------------------------------------ */
-
-/** GET /api/predictions/me?season=2026 */
 export async function listMyPredictions(req, res) {
   const filter = { user: req.userId }
   if (req.query.season) filter.season = Number(req.query.season)
@@ -76,13 +58,6 @@ export async function listMyPredictions(req, res) {
   res.json({ count: predictions.length, totalPoints, predictions })
 }
 
-/**
- * PUT /api/predictions/:season/:round
- *
- * PUT, because it is "make my prediction for this race be exactly this" —
- * sending it twice leaves the same single prediction, which is what
- * idempotent means. upsert creates it the first time and replaces it after.
- */
 export async function savePrediction(req, res) {
   const season = Number(req.params.season)
   const round = Number(req.params.round)
@@ -90,7 +65,6 @@ export async function savePrediction(req, res) {
 
   const existing = await Prediction.findOne({ user: req.userId, season, round })
 
-  // Once a race has been scored the prediction is history, not a draft.
   if (existing?.scored) {
     return res
       .status(409)
@@ -106,18 +80,6 @@ export async function savePrediction(req, res) {
   res.status(existing ? 200 : 201).json({ prediction })
 }
 
-/**
- * POST /api/predictions/:season/:round/scores
- *
- * Scores every prediction for one race against the real result. A noun —
- * what is being created is a set of scores.
- *
- * The real finishing order comes from the client, which read it from the F1
- * API. That is a weakness worth naming: a determined user could post a
- * flattering result. Fixing it properly means the server fetching the result
- * itself, which is a small change to this function and a scheduled job to
- * call it.
- */
 export async function scoreRace(req, res) {
   const season = Number(req.params.season)
   const round = Number(req.params.round)
@@ -140,14 +102,6 @@ export async function scoreRace(req, res) {
   res.json({ scored: scored.length, predictions: scored })
 }
 
-/**
- * POST /api/predictions/:id/scores
- *
- * Scores a single prediction — your own — against the real result. The
- * race-wide version above is the one a scheduled job would call; this one
- * exists because the race page scores your prediction the moment you open it
- * and the result is in.
- */
 export async function scoreOne(req, res) {
   const prediction = await Prediction.findById(req.params.id)
   if (!prediction) throw httpError(404, 'That prediction no longer exists.')
@@ -169,12 +123,6 @@ export async function scoreOne(req, res) {
   res.json({ prediction })
 }
 
-/**
- * GET /api/predictions/leaderboard
- *
- * One aggregation rather than reading every prediction into Node and adding
- * them up there. The database is better at this than we are.
- */
 export async function leaderboard(_req, res) {
   const rows = await Prediction.aggregate([
     { $match: { scored: true } },
@@ -190,7 +138,6 @@ export async function leaderboard(_req, res) {
     { $limit: 50 },
   ])
 
-  // Attach usernames. One query for all of them, not one per row.
   const users = await User.find({ _id: { $in: rows.map((row) => row._id) } }).select('username')
   const nameById = Object.fromEntries(users.map((user) => [user._id.toString(), user.username]))
 

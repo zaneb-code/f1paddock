@@ -8,11 +8,6 @@ import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
-/**
- * A model call costs money and takes a second or two. Without a limit, one
- * impatient click-through could run up a bill or stall the server for
- * everyone else.
- */
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 10,

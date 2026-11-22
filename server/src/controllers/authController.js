@@ -1,11 +1,3 @@
-/**
- * Authentication: register, verify, log in, log out.
- *
- * The controller layer from the Node lectures — it handles the request and
- * the response and nothing else. Database rules live in the models, request
- * shape is checked by the validators, and the route file just wires them up.
- */
-
 import bcrypt from 'bcryptjs'
 import crypto from 'node:crypto'
 
@@ -16,38 +8,18 @@ import { sendVerificationEmail } from '../lib/mailer.js'
 import { SESSION_COOKIE, sessionCookieOptions } from '../middleware/auth.js'
 import { httpError } from '../middleware/errorHandler.js'
 
-const CODE_TTL_MS = 10 * 60 * 1000 // ten minutes
+const CODE_TTL_MS = 10 * 60 * 1000
 const MAX_ATTEMPTS = 5
 
-/**
- * Usernames that are made moderators on sign-up, so the admin page can be
- * marked without a database console. A convenience for marking this project,
- * not a design anyone should ship — in a real system roles are granted by an
- * existing admin, never claimed by picking a username.
- */
 const MODERATOR_USERNAMES = (process.env.MODERATOR_USERNAMES ?? 'admin,moderator,steward')
   .split(',')
   .map((name) => name.trim().toLowerCase())
   .filter(Boolean)
 
-/* ------------------------------------------------------------------ */
-/*  helpers                                                            */
-/* ------------------------------------------------------------------ */
-
 function generateCode() {
-  // crypto, not Math.random: predictable verification codes would let someone
-  // verify an address they do not own.
   return String(crypto.randomInt(0, 1_000_000)).padStart(6, '0')
 }
 
-/**
- * Issues a fresh code, stores only its hash, and emails the plain one.
- *
- * Returns the mailer's result — { delivered, mode, previewUrl } — so the
- * route can pass it to the client. In `ethereal` mode that preview URL is the
- * only way to read the email, and the UI shows it as a link. It carries no
- * secret: the code itself is never returned, only where the message landed.
- */
 async function issueCode(user) {
   const code = generateCode()
 
@@ -61,7 +33,6 @@ async function issueCode(user) {
   return sendVerificationEmail(user.email, code)
 }
 
-/** Signs a token and puts it in the httpOnly cookie. */
 function startSession(res, user) {
   res.cookie(
     SESSION_COOKIE,
@@ -70,16 +41,9 @@ function startSession(res, user) {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*  POST /api/auth/register                                            */
-/* ------------------------------------------------------------------ */
-
 export async function register(req, res) {
   const { email, username, password } = req.body
 
-  // Checked here for a friendly, per-field message. The unique indexes on the
-  // model are what actually guarantee it — two simultaneous sign-ups would
-  // both pass this check, and only the index stops the second one.
   const clash = await User.findOne({ $or: [{ email: email.toLowerCase() }, { username }] })
 
   if (clash) {
@@ -100,14 +64,10 @@ export async function register(req, res) {
   await user.setPassword(password)
   await user.save()
 
-  // Every user gets a profile row immediately, so nothing later has to cope
-  // with a user that has none.
   await Profile.create({ user: user._id, username: user.username })
 
   const delivery = await issueCode(user)
 
-  // 201 Created. No session yet — the account is not usable until the code
-  // is entered, which is the whole point of verifying an address.
   res.status(201).json({
     message: 'Account created. Check your email for a six-digit code.',
     email: user.email,
@@ -116,10 +76,6 @@ export async function register(req, res) {
   })
 }
 
-/* ------------------------------------------------------------------ */
-/*  POST /api/auth/verify                                              */
-/* ------------------------------------------------------------------ */
-
 export async function verify(req, res) {
   const { email, code } = req.body
 
@@ -127,9 +83,6 @@ export async function verify(req, res) {
     '+verification.codeHash +verification.expiresAt +verification.attempts',
   )
 
-  // Same answer whether the address is unknown or the code is simply wrong.
-  // Different answers would turn this endpoint into a way of discovering
-  // which addresses have accounts.
   const generic = { error: 'That code is not right. Request a new one if it has expired.' }
 
   if (!user || !user.verification?.codeHash) return res.status(400).json(generic)
@@ -167,14 +120,9 @@ export async function verify(req, res) {
   res.json({ message: 'Email verified.', user: user.toPublic() })
 }
 
-/* ------------------------------------------------------------------ */
-/*  POST /api/auth/resend                                              */
-/* ------------------------------------------------------------------ */
-
 export async function resend(req, res) {
   const user = await User.findOne({ email: req.body.email.toLowerCase() })
 
-  // Always the same reply, for the same reason as above.
   const reply = { message: 'If that address has an unverified account, a new code is on its way.' }
 
   if (user && !user.emailVerified) reply.delivery = await issueCode(user)
@@ -182,17 +130,11 @@ export async function resend(req, res) {
   res.json(reply)
 }
 
-/* ------------------------------------------------------------------ */
-/*  POST /api/auth/login                                               */
-/* ------------------------------------------------------------------ */
-
 export async function login(req, res) {
   const { email, password } = req.body
 
   const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordHash')
 
-  // One message for "no such user" and "wrong password". Telling them apart
-  // confirms which addresses are registered.
   const wrong = { error: 'Email or password is incorrect.' }
 
   if (!user) return res.status(401).json(wrong)
@@ -203,7 +145,6 @@ export async function login(req, res) {
   if (!user.emailVerified) {
     const delivery = await issueCode(user)
 
-    // Not an error — send them to the code screen rather than refusing.
     return res.status(403).json({
       error: 'Verify your email first. We have sent you a fresh code.',
       reason: 'unverified',
@@ -217,28 +158,14 @@ export async function login(req, res) {
   res.json({ message: 'Welcome back.', user: user.toPublic() })
 }
 
-/* ------------------------------------------------------------------ */
-/*  POST /api/auth/logout                                              */
-/* ------------------------------------------------------------------ */
-
 export function logout(_req, res) {
-  // Clearing has to use the same flags the cookie was set with, or the
-  // browser keeps the old one.
   res.clearCookie(SESSION_COOKIE, { ...sessionCookieOptions(), maxAge: undefined })
   res.json({ message: 'Logged out.' })
 }
 
-/* ------------------------------------------------------------------ */
-/*  GET /api/auth/me                                                   */
-/* ------------------------------------------------------------------ */
-
 export function me(req, res) {
   res.json({ user: req.user.toPublic() })
 }
-
-/* ------------------------------------------------------------------ */
-/*  PATCH /api/auth/password                                           */
-/* ------------------------------------------------------------------ */
 
 export async function changePassword(req, res) {
   const { currentPassword, newPassword } = req.body

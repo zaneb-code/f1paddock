@@ -1,12 +1,7 @@
-/**
- * Communities: driver, team and general discussion groups.
- */
-
 import Community from '../models/Community.js'
 import Post from '../models/Post.js'
 import { httpError } from '../middleware/errorHandler.js'
 
-/** Turns "Max Verstappen" into "max-verstappen". */
 function slugify(name) {
   return String(name)
     .toLowerCase()
@@ -15,24 +10,17 @@ function slugify(name) {
     .slice(0, 50)
 }
 
-/** GET /api/communities?type=driver&search=ferrari */
 export async function listCommunities(req, res) {
   const { type, search } = req.query
 
   const filter = {}
   if (type) filter.type = type
-
-  // Escaping first: a search for "a.*" would otherwise be a regular
-  // expression the user supplied, which at best returns nonsense and at
-  // worst is a denial of service through catastrophic backtracking.
   if (search) {
     const safe = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     filter.name = new RegExp(safe, 'i')
   }
 
   const communities = await Community.find(filter).sort({ createdAt: -1 }).limit(200)
-
-  // Post counts in one query rather than one per community.
   const counts = await Post.aggregate([
     { $match: { community: { $ne: null } } },
     { $group: { _id: '$community', count: { $sum: 1 } } },
@@ -50,7 +38,6 @@ export async function listCommunities(req, res) {
   })
 }
 
-/** GET /api/communities/:slug */
 export async function getCommunity(req, res) {
   const community = await Community.findOne({ slug: req.params.slug }).populate(
     'creator',
@@ -70,7 +57,6 @@ export async function getCommunity(req, res) {
   })
 }
 
-/** POST /api/communities */
 export async function createCommunity(req, res) {
   const { name, description, type, refId } = req.body
   const slug = slugify(name)
@@ -98,8 +84,6 @@ export async function createCommunity(req, res) {
     type: type ?? 'general',
     refId: refId ?? null,
     creator: req.userId,
-    // Creating a community joins it. Nobody wants to create a room and then
-    // have to join it.
     members: [req.userId],
   })
 
@@ -116,14 +100,7 @@ export async function createCommunity(req, res) {
     })
 }
 
-/**
- * PUT /api/communities/:slug/membership
- *
- * A noun, not a verb. The thing being changed is your membership of the
- * community, so that is what the URL names — not /join or /leave.
- */
 export async function toggleMembership(req, res) {
-  // Accepts a slug or an id, for the same reason toggleFollowUser does.
   const key = req.params.slug
   const community = /^[a-f\d]{24}$/i.test(key)
     ? await Community.findById(key)

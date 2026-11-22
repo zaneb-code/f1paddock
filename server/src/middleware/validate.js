@@ -1,37 +1,13 @@
 /**
  * Request validation — level 2 of 3.
- *
- *   1. React form       immediate feedback, no round trip        (client/src/utils/validate.js)
- *   2. THIS FILE        rejects bad requests before any model
- *   3. Mongoose schema  the database's own guarantee             (server/src/models/*.js)
- *
- * Why all three? Level 1 is politeness — it can be bypassed by anyone with
- * devtools or curl, so it is never a control. Level 3 is the real guarantee,
- * but it only speaks in Mongoose's own error shapes and only fires once a
- * model is involved. Level 2 sits between them: it rejects nonsense early,
- * cheaply, with a message written for a person, and it covers things a
- * schema cannot see — like "newPassword must match confirmPassword".
- *
- * Every failure answers 400 with a `fields` object the React form can read
- * straight into its per-input error state:
- *
- *   { "error": "Please fix the highlighted fields.",
- *     "fields": { "email": "Enter a valid email address" } }
- */
-
+*/
 const EMAIL = /.+@.+\..+/
 const USERNAME = /^[A-Za-z0-9_]+$/
 
-/** True for values the user simply did not supply. */
 function isBlank(value) {
   return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
 }
 
-/**
- * Each rule is a function (value, body) that returns an error message when
- * the value is wrong, or null when it is fine. Rules that are not `required`
- * pass on a blank value, so optional fields work without extra ceremony.
- */
 export const rule = {
   required:
     (message = 'This field is required') =>
@@ -103,19 +79,10 @@ export const rule = {
     (value) =>
       isBlank(value) || !Number.isNaN(new Date(value).getTime()) ? null : message,
 
-  /** For rules that need another field, like a password confirmation. */
   matchesField: (otherField, message) => (value, body) =>
     isBlank(value) || value === body?.[otherField] ? null : message,
 }
 
-/**
- * Builds middleware from a map of field name to a list of rules.
- *
- *   router.post('/', validate({ body: [rule.required(), rule.maxLength(1000)] }), controller)
- *
- * Rules run in order and the first failure wins, so a blank field reports
- * "required" rather than also complaining about its length.
- */
 export function validate(schema) {
   return function validateRequest(req, res, next) {
     const fields = {}
@@ -140,12 +107,6 @@ export function validate(schema) {
   }
 }
 
-/**
- * Validates a route parameter that should be a Mongo ObjectId.
- *
- * Without this, a request for /api/posts/banana reaches Mongoose, which
- * throws a CastError — a 500-shaped problem for what is really a 400.
- */
 const OBJECT_ID = /^[a-f\d]{24}$/i
 
 export function validateObjectId(param = 'id') {

@@ -1,37 +1,7 @@
-/**
- * ============================================================
- *  Jolpica-F1 API client  (the race information requirement)
- * ============================================================
- *
- * Jolpica is the community-maintained continuation of the Ergast API, which
- * shut down after the 2024 season. It keeps Ergast's URL shape and response
- * format, so anything written for Ergast still works.
- *
- * Free, no API key, no sign-up. Called straight from the browser.
- *
- * Docs: https://github.com/jolpica/jolpica-f1
- *
- * Every response is wrapped in MRData and nested several levels deep, e.g.
- *     MRData.RaceTable.Races[0]._embedded...
- * so each function here flattens what it needs into a plain object before
- * handing it to Redux. Components never see the raw API shape.
- */
-
 const BASE = 'https://api.jolpi.ca/ergast/f1'
 
-/** The season the app shows by default. */
 export const CURRENT_SEASON = new Date().getUTCFullYear()
 
-/**
- * How long to wait for the F1 archive before giving up.
- *
- * `fetch` has NO timeout of its own. Without this, a request that is accepted
- * but never answered simply never settles — and anything awaiting it waits
- * forever. That is not a theoretical problem: it showed up as the AI
- * prediction panel spinning indefinitely, because the thunk awaited three of
- * these calls before it could do anything else. A request that hangs must
- * become an error, or the UI has no way to recover.
- */
 const REQUEST_TIMEOUT_MS = 12_000
 
 async function request(path) {
@@ -42,8 +12,6 @@ async function request(path) {
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
   } catch (error) {
-    // A timeout and a dead connection both land here: fetch only rejects when
-    // the request never completed at all.
     if (error.name === 'TimeoutError' || error.name === 'AbortError') {
       throw new Error('The F1 data service did not respond in time. Try again in a moment.')
     }
@@ -63,11 +31,6 @@ async function request(path) {
   return response.json()
 }
 
-/* ------------------------------------------------------------------
- *  Normalising
- * ------------------------------------------------------------------ */
-
-/** The five possible weekend sessions, in the order they run. */
 const SESSION_FIELDS = [
   ['FirstPractice', 'Practice 1', 'FP1'],
   ['SecondPractice', 'Practice 2', 'FP2'],
@@ -77,14 +40,6 @@ const SESSION_FIELDS = [
   ['Qualifying', 'Qualifying', 'QLF'],
 ]
 
-/**
- * Builds the weekend timetable.
- *
- * Not every weekend has every session: a sprint weekend swaps FP2 and FP3
- * for Sprint Qualifying and the Sprint. Rather than hardcode either layout,
- * we keep whichever fields the API actually returned and sort by start time,
- * which produces the correct order for both formats.
- */
 function buildSchedule(race) {
   const sessions = SESSION_FIELDS.filter(([field]) => race[field]).map(([field, name, short]) => ({
     key: field,
@@ -108,7 +63,6 @@ function buildSchedule(race) {
   return sessions.sort((a, b) => (a.startsAt ?? '').localeCompare(b.startsAt ?? ''))
 }
 
-/** "2026-03-08" + "05:00:00Z" -> a real ISO timestamp, or null if no time is published. */
 function toIso(date, time) {
   if (!date) return null
   if (!time) return `${date}T00:00:00Z`
@@ -152,18 +106,12 @@ function normaliseDriver(driver) {
   }
 }
 
-/* ------------------------------------------------------------------
- *  Public functions
- * ------------------------------------------------------------------ */
-
-/** Every race of a season, with its full weekend timetable. */
 export async function fetchSeasonSchedule(season = CURRENT_SEASON) {
   const data = await request(`/${season}/races/?format=json&limit=100`)
   const races = data.MRData?.RaceTable?.Races ?? []
   return races.map(normaliseRace)
 }
 
-/** One race by round number. */
 export async function fetchRace(season, round) {
   const data = await request(`/${season}/${round}/races/?format=json`)
   const race = data.MRData?.RaceTable?.Races?.[0]
@@ -171,7 +119,6 @@ export async function fetchRace(season, round) {
   return normaliseRace(race)
 }
 
-/** Finishing order for a completed race — the "driver positions" requirement. */
 export async function fetchRaceResults(season, round) {
   const data = await request(`/${season}/${round}/results/?format=json&limit=100`)
   const race = data.MRData?.RaceTable?.Races?.[0]
@@ -198,7 +145,6 @@ export async function fetchRaceResults(season, round) {
   }
 }
 
-/** Qualifying order for a race. */
 export async function fetchQualifyingResults(season, round) {
   const data = await request(`/${season}/${round}/qualifying/?format=json&limit=100`)
   const race = data.MRData?.RaceTable?.Races?.[0]
@@ -214,7 +160,6 @@ export async function fetchQualifyingResults(season, round) {
   }))
 }
 
-/** Drivers' championship table. */
 export async function fetchDriverStandings(season = CURRENT_SEASON) {
   const data = await request(`/${season}/driverstandings/?format=json&limit=100`)
   const list = data.MRData?.StandingsTable?.StandingsLists?.[0]
@@ -235,7 +180,6 @@ export async function fetchDriverStandings(season = CURRENT_SEASON) {
   }
 }
 
-/** Constructors' championship table. */
 export async function fetchConstructorStandings(season = CURRENT_SEASON) {
   const data = await request(`/${season}/constructorstandings/?format=json&limit=100`)
   const list = data.MRData?.StandingsTable?.StandingsLists?.[0]
@@ -257,13 +201,11 @@ export async function fetchConstructorStandings(season = CURRENT_SEASON) {
   }
 }
 
-/** Every driver on this season's grid — used for favourites and prediction pickers. */
 export async function fetchDrivers(season = CURRENT_SEASON) {
   const data = await request(`/${season}/drivers/?format=json&limit=100`)
   return (data.MRData?.DriverTable?.Drivers ?? []).map(normaliseDriver)
 }
 
-/** Every team on this season's grid. */
 export async function fetchConstructors(season = CURRENT_SEASON) {
   const data = await request(`/${season}/constructors/?format=json&limit=100`)
   return (data.MRData?.ConstructorTable?.Constructors ?? []).map((c) => ({
@@ -274,7 +216,6 @@ export async function fetchConstructors(season = CURRENT_SEASON) {
   }))
 }
 
-/** Every circuit of the season — used for favourite circuits. */
 export async function fetchCircuits(season = CURRENT_SEASON) {
   const data = await request(`/${season}/circuits/?format=json&limit=100`)
   return (data.MRData?.CircuitTable?.Circuits ?? []).map((c) => ({
@@ -286,10 +227,6 @@ export async function fetchCircuits(season = CURRENT_SEASON) {
   }))
 }
 
-/**
- * Podium finishers from the last few completed rounds.
- * Feeds the AI prediction so the model has recent form to reason about.
- */
 export async function fetchRecentForm(season, upToRound, count = 3) {
   const rounds = []
   for (let r = upToRound; r > 0 && rounds.length < count; r -= 1) rounds.push(r)

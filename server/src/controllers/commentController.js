@@ -1,12 +1,4 @@
-/**
- * Comments on posts.
- *
- * The routes are nested one level — /api/posts/:postId/comments — because a
- * comment list only means anything inside a post. Acting on one comment that
- * already has an id uses the shallow /api/comments/:id instead, which cannot
- * contradict itself the way /api/posts/7/comments/3 can when comment 3
- * belongs to post 5.
- */
+
 
 import Comment from '../models/Comment.js'
 import Post from '../models/Post.js'
@@ -21,7 +13,6 @@ function present(comment) {
   }
 }
 
-/** GET /api/posts/:postId/comments */
 export async function listComments(req, res) {
   const post = await Post.findById(req.params.postId)
   if (!post) throw httpError(404, 'That post no longer exists.')
@@ -53,7 +44,6 @@ export async function createComment(req, res) {
     .json({ comment: present(comment) })
 }
 
-/** DELETE /api/comments/:id */
 export async function deleteComment(req, res) {
   const comment = await Comment.findById(req.params.id)
   if (!comment) throw httpError(404, 'That comment is already gone.')

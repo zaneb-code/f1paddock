@@ -1,7 +1,3 @@
-/**
- * Fan meetups: create one, join one, filter by type.
- */
-
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -72,9 +68,6 @@ export default function Meetups() {
   async function handleCreate(event) {
     event.preventDefault()
     setFormError(null)
-
-    // Level 1. The same schema the server checks, so what passes here
-    // passes there — and what fails is explained before any round trip.
     const { ok, errors } = validateForm(schemas.meetup, draft)
     if (!ok) {
       setFieldErrors(errors)
@@ -97,8 +90,6 @@ export default function Meetups() {
       setDraft(BLANK)
       setFieldErrors({})
     } else {
-      // Level 2. The server answers with the same { field: message } shape,
-      // so its reply drops straight into the same state.
       setFieldErrors(result.payload?.fields ?? {})
       setFormError(result.payload?.error ?? 'Could not create that meetup.')
     }

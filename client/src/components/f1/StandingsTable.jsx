@@ -1,10 +1,3 @@
-/**
- * Championship tables, for both drivers and constructors.
- *
- * The left edge of every row is the team colour, which makes team-mates
- * visually adjacent without needing a separate column.
- */
-
 import { Link } from 'react-router-dom'
 import CarSilhouette from './CarSilhouette'
 import { teamColour, teamTint } from '../../utils/teams'
@@ -145,11 +138,6 @@ export function ConstructorStandingsTable({ standings, limit, highlightTeamIds =
   )
 }
 
-/**
- * Finishing order for a completed race — the "driver positions under each
- * race" part of the requirement. Shows grid position and places gained or
- * lost, which is the detail that makes a result readable at a glance.
- */
 export function ResultsTable({ results }) {
   if (!results?.length) {
     return <p className="py-6 text-center text-sm text-muted">No results yet.</p>
@@ -254,14 +242,6 @@ export function Podium({ results }) {
   )
 }
 
-/**
- * The constructors' championship as full-width cards rather than table rows.
- *
- * A table makes you read across to compare; these make the order obvious at
- * a glance, because each card is washed in its own team colour and the
- * points are the largest thing on it. The car is a generic drawn shape
- * tinted to match — see CarSilhouette.jsx.
- */
 export function ConstructorStandingsCards({ standings, limit, highlightTeamIds = [] }) {
   const rows = limit ? standings.slice(0, limit) : standings
 
@@ -281,10 +261,7 @@ export function ConstructorStandingsCards({ standings, limit, highlightTeamIds =
             key={id}
             className="relative overflow-hidden rounded-2xl border border-line transition-transform duration-200 hover:-translate-y-0.5"
             style={{
-              // Team colour at the leading edge, fading into the page. The
-              // alpha is kept below ~0.6 on purpose: a fully saturated
-              // livery behind white text fails contrast on the lighter
-              // colours (Mercedes, Williams, Haas).
+            
               backgroundImage: `linear-gradient(100deg, ${teamTint(id, 0.58)} 0%, ${teamTint(
                 id,
                 0.2,
@@ -292,12 +269,11 @@ export function ConstructorStandingsCards({ standings, limit, highlightTeamIds =
               borderLeft: `3px solid ${colour}`,
             }}
           >
-            {/* The car sits behind the text, bleeding off the right edge */}
+            {}
             <CarSilhouette className="pointer-events-none absolute -right-6 bottom-1 h-20 w-auto opacity-25 sm:-right-2 sm:h-28" />
 
             <div className="relative flex items-center gap-4 px-5 py-5 sm:px-6">
-              {/* Position, large on the left. White rather than the team
-                  colour, which would vanish into its own gradient. */}
+              {}
               <span className="font-display text-4xl leading-none font-bold text-chalk/90 tabular-nums sm:text-5xl">
                 {String(row.position).padStart(2, '0')}
               </span>

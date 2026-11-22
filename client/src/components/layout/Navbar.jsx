@@ -1,10 +1,3 @@
-/**
- * Site navigation and the authentication area.
- *
- * Reads the signed-in user from Redux, so it is always correct no matter
- * which page you are on or how you got there.
- */
-
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
@@ -37,14 +30,6 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
-  /**
-   * Logging out happens in two steps.
-   *
-   * Clearing the session while still on a protected page makes ProtectedRoute
-   * redirect to /login, which would override wherever we tried to send the
-   * user. So: navigate home first, then clear the session once we have
-   * arrived. The two never race.
-   */
   function handleLogout() {
     setMenuOpen(false)
     setLoggingOut(true)

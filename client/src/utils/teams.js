@@ -1,12 +1,3 @@
-/**
- * Team colours and era definitions.
- *
- * The colours are approximations of each team's livery, used only to tint
- * chips and borders so the grid is scannable at a glance. They are decoration,
- * not data from the API — anything the API actually knows (names, ids) comes
- * from Jolpica.
- */
-
 export const TEAM_COLOURS = {
   mercedes: '#27F4D2',
   ferrari: '#E8002D',
@@ -39,11 +30,6 @@ export function teamTint(constructorId, alpha = 0.14) {
   const b = parseInt(hex.slice(4, 6), 16)
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
-
-/**
- * F1 eras, offered as a profile preference. These are the commonly used
- * fan groupings rather than anything official.
- */
 export const F1_ERAS = [
   { id: 'pre-1980', label: 'Pre-1980', blurb: 'Fangio to Lauda' },
   { id: 'turbo-80s', label: '1980s Turbo', blurb: 'Senna, Prost, Piquet' },

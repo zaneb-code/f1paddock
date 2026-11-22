@@ -1,16 +1,3 @@
-/**
- * Route guards.
- *
- * ProtectedRoute  — members-only pages. Remembers where you were headed so
- *                   login can send you back there.
- * PublicOnlyRoute — keeps signed-in users off login and register.
- * ModeratorRoute  — the admin queue.
- *
- * Both wait for `sessionChecked` before deciding anything. Without that, a
- * refresh on a protected page would bounce to /login for a moment while the
- * stored token was still being verified.
- */
-
 import { Navigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 

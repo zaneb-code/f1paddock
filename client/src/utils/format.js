@@ -1,19 +1,3 @@
-/**
- * Formatting and validation helpers.
- *
- * Pure functions only — no React, no Redux. Input in, output out, which makes
- * them trivial to reason about and to reuse anywhere.
- */
-
-/* ------------------------------------------------------------------
- *  Dates and times
- * ------------------------------------------------------------------ */
-
-/**
- * The F1 API publishes session times in UTC. Browsers convert to the viewer's
- * own timezone automatically, which is what a fan actually wants: "when is
- * qualifying, for me".
- */
 export function formatSessionTime(isoString) {
   if (!isoString) return 'TBC'
   const date = new Date(isoString)
@@ -46,7 +30,6 @@ export function formatShortDate(dateString) {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
-/** The viewer's timezone name, so the UI can say which clock it is showing. */
 export function localTimeZone() {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -54,8 +37,6 @@ export function localTimeZone() {
     return 'local time'
   }
 }
-
-/** "3 hours ago", "2 days ago". */
 export function timeAgo(isoString) {
   if (!isoString) return ''
   const then = new Date(isoString).getTime()
@@ -71,11 +52,6 @@ export function timeAgo(isoString) {
   return new Date(isoString).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
-/**
- * Breaks the gap to a future time into days/hours/minutes/seconds.
- * Returns null once the moment has passed, which is how the countdown
- * component knows to stop rendering.
- */
 export function countdownTo(isoString) {
   if (!isoString) return null
 
@@ -99,11 +75,6 @@ export function isPast(isoString) {
   const time = new Date(isoString).getTime()
   return !Number.isNaN(time) && time < Date.now()
 }
-
-/* ------------------------------------------------------------------
- *  Text
- * ------------------------------------------------------------------ */
-
 export function initials(name = '') {
   return name
     .trim()
@@ -112,11 +83,6 @@ export function initials(name = '') {
     .slice(0, 2)
     .join('')
 }
-
-/**
- * Picks a stable colour for an avatar from a string, so the same username
- * always gets the same colour without storing one.
- */
 export function avatarHue(seed = '') {
   let hash = 0
   for (let i = 0; i < seed.length; i += 1) {
@@ -138,21 +104,8 @@ export function ordinal(n) {
 export function pluralise(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`
 }
-
-/* ------------------------------------------------------------------
- *  Form validation
- * ------------------------------------------------------------------ */
-
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 export const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
-
-/**
- * Form validation moved to utils/validate.js in Phase 2, so the client and
- * the server describe the same rules in the same vocabulary and the limits
- * cannot drift apart. Import validateRegister and validateLogin from there.
- */
-
-/** Rough password strength, 0-5, for the signup meter. */
 export function passwordStrength(password = '') {
   let score = 0
   if (password.length >= 8) score += 1

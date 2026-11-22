@@ -1,27 +1,9 @@
-/**
- * ============================================================
- *  socialSlice — communities, posts and comments
- * ============================================================
- *
- * Covers four of the proposal's functionalities at once:
- *   - driver/team-based communities
- *   - posts, comments, likes and discussions
- *   - race-specific discussion rooms (a post with a raceRound attached)
- *   - search and filter across discussions
- *
- * A race discussion room is deliberately not a separate entity. It is just a
- * post whose `raceRound` is set instead of its `communityId`, which means
- * every feature built for community posts — liking, commenting, reporting,
- * searching — works in a race room with no extra code.
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import * as db from '../../api/social'
 
 const reject = (error, rejectWithValue) =>
   rejectWithValue(error?.message ?? 'Something went wrong.')
 
-/* ---------- Communities ---------- */
 
 export const loadCommunities = createAsyncThunk(
   'social/loadCommunities',
@@ -147,13 +129,8 @@ const initialState = {
   posts: [],
   postsStatus: 'idle',
   postsError: null,
-
-  // postId -> array of comments. Keeping them keyed means opening a second
-  // post's comments does not wipe the first one's.
   commentsByPost: {},
   commentsStatus: 'idle',
-
-  // Free-text search across discussions
   search: '',
 
   error: null,
