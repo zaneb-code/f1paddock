@@ -279,7 +279,7 @@ export function AiPredictionPanel({ race, standings }) {
         {prediction && !loading && (
           <>
             <ol className="mb-4 space-y-2">
-              {prediction.podium.map((entry) => (
+              {(prediction.podium ?? []).map((entry) => (
                 <li
                   key={entry.position}
                   className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 px-3 py-2.5"

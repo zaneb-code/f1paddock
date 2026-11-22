@@ -70,6 +70,18 @@ async function getCsrfToken() {
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 
+/**
+ * How long to wait for our own API.
+ *
+ * Same reasoning as the F1 client: `fetch` never times out on its own, so a
+ * request the server accepts but never answers leaves the caller awaiting
+ * forever. Every thunk in the app awaits one of these, and a thunk that never
+ * settles is a loading spinner that never stops.
+ *
+ * Generous, because one of these routes calls a language model.
+ */
+const REQUEST_TIMEOUT_MS = 30_000
+
 /* ------------------------------------------------------------------ */
 
 async function send(path, { method = 'GET', body, retrying = false } = {}) {
@@ -90,9 +102,13 @@ async function send(path, { method = 'GET', body, retrying = false } = {}) {
       headers,
       credentials: 'include',
       body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
-  } catch {
-    // fetch only rejects when the request never completed.
+  } catch (error) {
+    // fetch only rejects when the request never completed at all.
+    if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+      throw new ApiError('The server took too long to answer. Try again.', { status: 0 })
+    }
     throw new ApiError('Cannot reach the server. Is it running?', { status: 0 })
   }
 

@@ -151,8 +151,26 @@ app.use(express.json({ limit: '100kb' }))
 /*  5. Request log                                                     */
 /* ------------------------------------------------------------------ */
 
-app.use((req, _res, next) => {
-  if (req.path !== '/api/health') console.log(`  ${req.method} ${req.path}`)
+/**
+ * Logs each request when it FINISHES, with its status and how long it took.
+ *
+ * Logging on arrival instead is a trap: the line appears either way, so a
+ * request that hangs looks exactly like one that succeeded, and the log
+ * cannot tell you which. `res.on('finish')` fires once the response has been
+ * handed to the socket, so a line with no status never appears at all — and
+ * a missing line is then real evidence that something never answered.
+ */
+app.use((req, res, next) => {
+  if (req.path === '/api/health') return next()
+
+  const startedAt = process.hrtime.bigint()
+
+  res.on('finish', () => {
+    const ms = Number(process.hrtime.bigint() - startedAt) / 1e6
+    const mark = res.statusCode >= 500 ? '!!' : res.statusCode >= 400 ? ' *' : '  '
+    console.log(`${mark} ${req.method} ${req.path} -> ${res.statusCode} in ${ms.toFixed(0)}ms`)
+  })
+
   next()
 })
 

@@ -40,7 +40,14 @@ function generateCode() {
   return String(crypto.randomInt(0, 1_000_000)).padStart(6, '0')
 }
 
-/** Issues a fresh code, stores only its hash, and emails the plain one. */
+/**
+ * Issues a fresh code, stores only its hash, and emails the plain one.
+ *
+ * Returns the mailer's result — { delivered, mode, previewUrl } — so the
+ * route can pass it to the client. In `ethereal` mode that preview URL is the
+ * only way to read the email, and the UI shows it as a link. It carries no
+ * secret: the code itself is never returned, only where the message landed.
+ */
 async function issueCode(user) {
   const code = generateCode()
 
@@ -51,7 +58,7 @@ async function issueCode(user) {
   }
   await user.save()
 
-  await sendVerificationEmail(user.email, code)
+  return sendVerificationEmail(user.email, code)
 }
 
 /** Signs a token and puts it in the httpOnly cookie. */
@@ -97,7 +104,7 @@ export async function register(req, res) {
   // with a user that has none.
   await Profile.create({ user: user._id, username: user.username })
 
-  await issueCode(user)
+  const delivery = await issueCode(user)
 
   // 201 Created. No session yet — the account is not usable until the code
   // is entered, which is the whole point of verifying an address.
@@ -105,6 +112,7 @@ export async function register(req, res) {
     message: 'Account created. Check your email for a six-digit code.',
     email: user.email,
     needsVerification: true,
+    delivery,
   })
 }
 
@@ -169,7 +177,7 @@ export async function resend(req, res) {
   // Always the same reply, for the same reason as above.
   const reply = { message: 'If that address has an unverified account, a new code is on its way.' }
 
-  if (user && !user.emailVerified) await issueCode(user)
+  if (user && !user.emailVerified) reply.delivery = await issueCode(user)
 
   res.json(reply)
 }
@@ -193,7 +201,7 @@ export async function login(req, res) {
   if (!ok) return res.status(401).json(wrong)
 
   if (!user.emailVerified) {
-    await issueCode(user)
+    const delivery = await issueCode(user)
 
     // Not an error — send them to the code screen rather than refusing.
     return res.status(403).json({
@@ -201,6 +209,7 @@ export async function login(req, res) {
       reason: 'unverified',
       email: user.email,
       needsVerification: true,
+      delivery,
     })
   }
 

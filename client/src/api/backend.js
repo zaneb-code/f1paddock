@@ -57,9 +57,32 @@ export const auth = {
  *  AI predictions
  * ------------------------------------------------------------------ */
 
+/**
+ * The AI endpoints.
+ *
+ * Both of these UNWRAP the server's envelope, the same way social.js does.
+ * The API answers `{ prediction: {...} }` and `{ provider, isLanguageModel }`,
+ * while the slice works with the prediction itself and with `isLlm`. Doing the
+ * translation here keeps it in one place instead of in every reducer.
+ *
+ * This is not cosmetic. When the slice read `action.payload.race` straight off
+ * the envelope it got `undefined`, and destructuring that THREW inside the
+ * reducer — so `pending` had already set the status to 'loading', `fulfilled`
+ * died before it could set 'succeeded', and the panel span forever with no
+ * error to show. A reducer that throws leaves the state wherever `pending`
+ * put it, which is why the symptom was an eternal spinner rather than a
+ * visible failure.
+ */
 export const ai = {
-  status: () => request.get('/ai/status'),
-  predict: (context) => request.post('/ai/predict', context),
+  async status() {
+    const data = await request.get('/ai/status')
+    return { provider: data.provider, isLlm: Boolean(data.isLanguageModel) }
+  },
+
+  async predict(context) {
+    const { prediction } = await request.post('/ai/predict', context)
+    return prediction
+  },
 }
 
 export const health = () => request.get('/health')

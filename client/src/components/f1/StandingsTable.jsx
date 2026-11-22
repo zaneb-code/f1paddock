@@ -288,7 +288,7 @@ export function ConstructorStandingsCards({ standings, limit, highlightTeamIds =
               backgroundImage: `linear-gradient(100deg, ${teamTint(id, 0.58)} 0%, ${teamTint(
                 id,
                 0.2,
-              )} 38%, rgba(74, 7, 18, 0.94) 72%)`,
+              )} 38%, rgba(59, 16, 16, 0.94) 72%)`,
               borderLeft: `3px solid ${colour}`,
             }}
           >

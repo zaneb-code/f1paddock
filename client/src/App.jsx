@@ -28,6 +28,7 @@ import { Routes, Route } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import Splash from './components/layout/Splash'
+import ErrorBoundary from './components/layout/ErrorBoundary'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import ScrollToTop from './components/layout/ScrollToTop'
@@ -77,7 +78,10 @@ export default function App() {
       <Navbar />
 
       <main className="flex-1">
-        <Routes>
+        {/* A crash inside a page is caught here, so the navbar and footer
+            survive and the user is told what happened. */}
+        <ErrorBoundary>
+          <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/races" element={<Races />} />
           <Route path="/races/:round" element={<RaceDetail />} />
@@ -132,7 +136,8 @@ export default function App() {
           />
 
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </ErrorBoundary>
       </main>
 
       <Footer />

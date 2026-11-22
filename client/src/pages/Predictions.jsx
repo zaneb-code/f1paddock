@@ -208,7 +208,7 @@ export default function Predictions() {
                     <p className="truncate font-semibold text-chalk">{prediction.raceName}</p>
                     <p className="text-xs text-dim">
                       Round {prediction.round} ·{' '}
-                      {prediction.podium
+                      {(prediction.podium ?? [])
                         .map(
                           (id) =>
                             standings.find((s) => s.driver.driverId === id)?.driver.familyName ??

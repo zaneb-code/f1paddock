@@ -142,12 +142,12 @@ export const requestAiPrediction = createAsyncThunk(
         recentForm,
       })
 
-      // The server answers with { podium, rationale } and nothing else — it
-      // has no reason to echo the race back. But the slice caches by race, so
-      // attach it here rather than leaving the reducer to guess.
+      // The server echoes the race back on its own, and its copy is richer
+      // (name, circuit, date). Keep it, and only synthesise one if it is
+      // missing, so the cache key below can never be built from undefined.
       return {
         ...prediction,
-        race: { season: String(race.season), round: String(race.round) },
+        race: prediction.race ?? { season: String(race.season), round: String(race.round) },
       }
     } catch (error) {
       return reject(error, rejectWithValue)
@@ -249,10 +249,10 @@ const predictionsSlice = createSlice({
       .addCase(requestAiPrediction.fulfilled, (state, action) => {
         state.aiStatus = 'succeeded'
 
-        // Destructuring action.payload.race directly is what froze this panel:
-        // if the shape ever drifts, the reducer throws, Immer discards the
-        // whole draft including the line above, and the spinner runs forever
-        // with no error anywhere. Read defensively instead.
+        // Read defensively. If this destructured action.payload.race directly
+        // and the shape ever drifted, the reducer would throw, Immer would
+        // discard the whole draft including the line above, and the spinner
+        // would run forever with no error logged anywhere.
         const { season, round } = action.payload?.race ?? {}
         if (season == null || round == null) return
 

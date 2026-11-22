@@ -22,8 +22,33 @@ const BASE = 'https://api.jolpi.ca/ergast/f1'
 /** The season the app shows by default. */
 export const CURRENT_SEASON = new Date().getUTCFullYear()
 
+/**
+ * How long to wait for the F1 archive before giving up.
+ *
+ * `fetch` has NO timeout of its own. Without this, a request that is accepted
+ * but never answered simply never settles — and anything awaiting it waits
+ * forever. That is not a theoretical problem: it showed up as the AI
+ * prediction panel spinning indefinitely, because the thunk awaited three of
+ * these calls before it could do anything else. A request that hangs must
+ * become an error, or the UI has no way to recover.
+ */
+const REQUEST_TIMEOUT_MS = 12_000
+
 async function request(path) {
-  const response = await fetch(`${BASE}${path}`)
+  let response
+
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+  } catch (error) {
+    // A timeout and a dead connection both land here: fetch only rejects when
+    // the request never completed at all.
+    if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+      throw new Error('The F1 data service did not respond in time. Try again in a moment.')
+    }
+    throw new Error('Could not reach the F1 data service. Check your connection.')
+  }
 
   if (!response.ok) {
     if (response.status === 429) {
