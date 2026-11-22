@@ -111,9 +111,18 @@ export const requestAiPrediction = createAsyncThunk(
   'predictions/requestAi',
   async ({ race, standings }, { rejectWithValue }) => {
     try {
-      const recentForm = await fetchRecentForm(race.season, Math.max(0, race.round - 1), 3)
+      // Recent form is extra context for the prediction, not a requirement.
+      // If the F1 archive is slow, rate limited or unreachable, generate the
+      // prediction without it rather than failing the whole request — the
+      // standings alone are enough to produce an answer.
+      let recentForm = []
+      try {
+        recentForm = await fetchRecentForm(race.season, Math.max(0, race.round - 1), 3)
+      } catch {
+        recentForm = []
+      }
 
-      return await ai.predict({
+      const prediction = await ai.predict({
         race: {
           season: String(race.season),
           round: String(race.round),
@@ -132,6 +141,14 @@ export const requestAiPrediction = createAsyncThunk(
         })),
         recentForm,
       })
+
+      // The server answers with { podium, rationale } and nothing else — it
+      // has no reason to echo the race back. But the slice caches by race, so
+      // attach it here rather than leaving the reducer to guess.
+      return {
+        ...prediction,
+        race: { season: String(race.season), round: String(race.round) },
+      }
     } catch (error) {
       return reject(error, rejectWithValue)
     }
@@ -231,7 +248,14 @@ const predictionsSlice = createSlice({
       })
       .addCase(requestAiPrediction.fulfilled, (state, action) => {
         state.aiStatus = 'succeeded'
-        const { season, round } = action.payload.race
+
+        // Destructuring action.payload.race directly is what froze this panel:
+        // if the shape ever drifts, the reducer throws, Immer discards the
+        // whole draft including the line above, and the spinner runs forever
+        // with no error anywhere. Read defensively instead.
+        const { season, round } = action.payload?.race ?? {}
+        if (season == null || round == null) return
+
         state.aiByRace[`${season}-${round}`] = action.payload
       })
       .addCase(requestAiPrediction.rejected, (state, action) => {
