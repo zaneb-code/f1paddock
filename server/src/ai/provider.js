@@ -1,5 +1,20 @@
 /**
  * The AI race-prediction provider.
+ *
+ * One function, getPrediction(), with four implementations behind it. Which
+ * one runs is decided by AI_PROVIDER in .env:
+ *
+ *   heuristic  (default) - no LLM. A transparent points-and-form calculation.
+ *                          Used when no API key is configured so the feature
+ *                          always works. It is clearly labelled as such in the
+ *                          response and in the UI: it is NOT an AI prediction.
+ *   gemini     - Google Gemini            (GEMINI_API_KEY)
+ *   openai     - OpenAI                   (OPENAI_API_KEY)
+ *   anthropic  - Anthropic Claude         (ANTHROPIC_API_KEY)
+ *
+ * Why the key lives here and not in the React app: anything in frontend code
+ * is downloadable by anyone who opens devtools. An API key in the browser is
+ * a published API key. That is the whole reason this small server exists.
  */
 
 const PROVIDER = (process.env.AI_PROVIDER || 'heuristic').toLowerCase()
@@ -78,6 +93,11 @@ function parseModelJson(text) {
  *  Heuristic fallback (no LLM)
  * ------------------------------------------------------------------ */
 
+/**
+ * Ranks drivers by championship points plus a small bonus for appearing on
+ * recent podiums. Deliberately simple and explainable — its job is to keep
+ * the feature usable without a key, not to pretend to be a model.
+ */
 function heuristicPrediction(context) {
   const { standings = [], recentForm = [] } = context
 
@@ -117,10 +137,47 @@ function heuristicPrediction(context) {
   }
 }
 
-//LLM providers
+/* ------------------------------------------------------------------
+ *  LLM providers
+ * ------------------------------------------------------------------ */
 
+/**
+ * How long any one provider gets before we give up and fall back.
+ *
+ * Deliberately shorter than the browser's own 30s ceiling on this request:
+ * if the model is slow we want the SERVER to notice first and return the
+ * heuristic podium, rather than the client timing out and showing nothing.
+ * A slow third party should degrade the answer, never remove it.
+ */
+const LLM_TIMEOUT_MS = 12_000
 
-const LLM_TIMEOUT_MS = 20_000
+/**
+ * 429 and 5xx mean "busy, ask again" rather than "your request is wrong", so
+ * one retry is worth it — a 503 from an overloaded model clears in seconds.
+ * Anything else (401 for a bad key, 400 for a malformed request) will fail
+ * identically the second time, so retrying it only wastes the user's wait.
+ */
+const RETRYABLE = new Set([429, 500, 502, 503, 504])
+const RETRY_DELAY_MS = 1200
+
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/**
+ * Runs `attempt` once, and once more after a pause if it failed in a way
+ * worth retrying. Two tries at 12s plus the pause stays inside the 30s the
+ * browser allows, so the fallback still gets its chance.
+ */
+async function withRetry(attempt) {
+  try {
+    return await attempt()
+  } catch (error) {
+    if (!error.retryable) throw error
+
+    console.warn(`  [ai] ${error.message} — retrying once`)
+    await pause(RETRY_DELAY_MS)
+    return attempt()
+  }
+}
 
 async function callGemini(prompt) {
   const key = process.env.GEMINI_API_KEY
@@ -128,6 +185,10 @@ async function callGemini(prompt) {
 
   const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'
 
+  return withRetry(() => askGemini(key, model, prompt))
+}
+
+async function askGemini(key, model, prompt) {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
@@ -147,7 +208,12 @@ async function callGemini(prompt) {
     },
   )
 
-  if (!response.ok) throw new Error(`Gemini returned ${response.status}: ${await response.text()}`)
+  if (!response.ok) {
+    const error = new Error(`Gemini returned ${response.status}`)
+    error.retryable = RETRYABLE.has(response.status)
+    error.detail = await response.text()
+    throw error
+  }
 
   const data = await response.json()
   return { text: data.candidates?.[0]?.content?.parts?.[0]?.text ?? '', model }
