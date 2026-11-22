@@ -93,7 +93,7 @@ export default function Splash() {
           {[0, 1, 2, 3, 4].map((index) => (
             <span
               key={index}
-              className="block h-3 w-3 rounded-full bg-accent shadow-[0_0_18px_4px_rgba(255,45,32,0.55)] sm:h-3.5 sm:w-3.5"
+              className="block h-3 w-3 rounded-full bg-accent shadow-[0_0_18px_4px_rgba(242,217,160,0.5)] sm:h-3.5 sm:w-3.5"
               style={{ animationDelay: `${index * 140}ms` }}
             />
           ))}

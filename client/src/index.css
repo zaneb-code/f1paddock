@@ -16,29 +16,36 @@
 @import 'tailwindcss';
 
 @theme {
-  /* Surfaces — a cool near-black, lighter as elements come forward */
-  --color-ink: #0a0a0c;
-  --color-surface: #131318;
-  --color-surface-2: #1c1c23;
-  --color-surface-3: #26262f;
-  --color-line: #2c2c36;
-  --color-line-strong: #3d3d4a;
+  /* Surfaces — deep wine at the back, warming toward burgundy as elements
+     come forward. The five steps are the palette's three dark tones with
+     two interpolated between them, so the stack reads as one family. */
+  --color-ink: #3b010b; /* Deep Wine   — the page itself */
+  --color-surface: #4a0712; /*              cards on the page */
+  --color-surface-2: #560b18; /* Dark Maroon — raised panels */
+  --color-surface-3: #661323; /*              hover / active */
+  --color-line: #75162d; /* Burgundy    — borders */
+  --color-line-strong: #8e2039; /*              emphasised borders */
 
-  /* Text */
-  --color-chalk: #f4f4f5;
-  --color-muted: #a1a1aa;
-  --color-dim: #71717a;
+  /* Text — champagne for body copy, warm sand as it recedes. Every one of
+     these clears 4.5:1 against all three surface levels. */
+  --color-chalk: #f2e5c6; /* Champagne Beige */
+  --color-muted: #d9be91;
+  --color-dim: #b2906a;
 
-  /* Accents */
-  --color-accent: #ff2d20;
-  --color-accent-soft: #ff6b5f;
-  --color-accent-dim: #c41a10;
-  --color-flag: #ffc53d;
+  /* Accents — sand gold carries the actions. On a wine background the
+     burgundy tones are surfaces, not accents: they have nowhere near
+     enough contrast to sit under white text or mark a primary button. */
+  --color-accent: #f2d9a0; /* Sand Gold */
+  --color-accent-soft: #f8eccb;
+  --color-accent-dim: #cba86b;
+  --color-flag: #e3a94a;
 
-  /* Status */
-  --color-go: #34d399;
-  --color-warn: #fbbf24;
-  --color-stop: #f87171;
+  /* Status — kept distinguishable from each other, since "finished",
+     "warning" and "error" have to be told apart at a glance, but warmed
+     so they belong to the same page. */
+  --color-go: #9bb07a;
+  --color-warn: #e3a94a;
+  --color-stop: #e2756b;
 
   /* Type */
   --font-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
@@ -63,8 +70,8 @@ body {
   font-family: var(--font-sans);
   /* Two faint glows so the dark background is not flat */
   background-image:
-    radial-gradient(900px 460px at 8% -8%, rgba(255, 45, 32, 0.1), transparent 70%),
-    radial-gradient(760px 420px at 96% 2%, rgba(255, 197, 61, 0.07), transparent 70%);
+    radial-gradient(900px 460px at 8% -8%, rgba(242, 217, 160, 0.09), transparent 70%),
+    radial-gradient(760px 420px at 96% 2%, rgba(142, 32, 57, 0.38), transparent 70%);
   background-attachment: fixed;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -86,7 +93,7 @@ h4 {
 }
 
 ::selection {
-  background: rgba(255, 45, 32, 0.32);
+  background: rgba(142, 32, 57, 0.6);
 }
 
 /* Scrollbar, so it does not glare white on a dark page */
@@ -125,7 +132,7 @@ h4 {
     @apply px-3.5 py-1.5 text-sm;
   }
   .btn-primary {
-    @apply bg-accent text-white shadow-[0_8px_28px_-10px_rgba(255,45,32,0.8)]
+    @apply bg-accent text-ink shadow-[0_8px_28px_-10px_rgba(242,217,160,0.45)]
            hover:bg-accent-soft hover:-translate-y-px active:translate-y-0;
   }
   .btn-ghost {
@@ -282,12 +289,12 @@ h4 {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(60% 55% at 50% 52%, transparent 0%, rgba(10, 10, 12, 0.72) 70%),
+    radial-gradient(60% 55% at 50% 52%, transparent 0%, rgba(59, 1, 11, 0.72) 70%),
     linear-gradient(
       to bottom,
-      rgba(10, 10, 12, 0.9),
-      rgba(10, 10, 12, 0.35) 45%,
-      rgba(10, 10, 12, 0.95)
+      rgba(59, 1, 11, 0.9),
+      rgba(59, 1, 11, 0.35) 45%,
+      rgba(59, 1, 11, 0.95)
     );
 }
 
@@ -298,7 +305,7 @@ h4 {
   bottom: 0;
   left: 0;
   width: 18%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  background: linear-gradient(90deg, transparent, rgba(242, 229, 198, 0.16), transparent);
   animation: splash-sweep 1500ms 450ms var(--ease-out-soft) both;
 }
 
@@ -358,18 +365,18 @@ h4 {
   background:
     linear-gradient(
       100deg,
-      rgba(10, 10, 12, 0.96) 18%,
-      rgba(10, 10, 12, 0.72) 52%,
-      rgba(10, 10, 12, 0.45)
+      rgba(59, 1, 11, 0.96) 18%,
+      rgba(59, 1, 11, 0.72) 52%,
+      rgba(59, 1, 11, 0.45)
     ),
-    linear-gradient(to bottom, rgba(10, 10, 12, 0.5), transparent 35%, rgba(10, 10, 12, 0.95));
+    linear-gradient(to bottom, rgba(59, 1, 11, 0.5), transparent 35%, rgba(59, 1, 11, 0.95));
 }
 
 /* Quieter version, for a strip rather than a full hero */
 .photo-strip::after {
   background:
-    radial-gradient(70% 90% at 50% 50%, rgba(10, 10, 12, 0.35), rgba(10, 10, 12, 0.88) 78%),
-    linear-gradient(to bottom, rgba(10, 10, 12, 0.75), rgba(10, 10, 12, 0.2) 45%, rgba(10, 10, 12, 0.9));
+    radial-gradient(70% 90% at 50% 50%, rgba(59, 1, 11, 0.35), rgba(59, 1, 11, 0.88) 78%),
+    linear-gradient(to bottom, rgba(59, 1, 11, 0.75), rgba(59, 1, 11, 0.2) 45%, rgba(59, 1, 11, 0.9));
 }
 
 /* The banner crops to the car rather than the empty tarmac around it */

@@ -61,9 +61,9 @@ export default function CarSilhouette({ className = '' }) {
 
       {/* Wheels, sitting on y = 98. The darker inner circle reads as the rim. */}
       <circle cx="66" cy="74" r="24" />
-      <circle cx="66" cy="74" r="9" fill="#0a0a0c" opacity="0.45" />
+      <circle cx="66" cy="74" r="9" fill="#3b010b" opacity="0.45" />
       <circle cx="214" cy="74" r="24" />
-      <circle cx="214" cy="74" r="9" fill="#0a0a0c" opacity="0.45" />
+      <circle cx="214" cy="74" r="9" fill="#3b010b" opacity="0.45" />
     </svg>
   )
 }

@@ -211,7 +211,7 @@ export function Tabs({ tabs, active, onChange, className = '' }) {
           aria-selected={active === tab.id}
           onClick={() => onChange(tab.id)}
           className={`flex items-center gap-2 rounded-full px-4 py-2 font-display text-sm font-semibold tracking-wide whitespace-nowrap uppercase transition-colors ${
-            active === tab.id ? 'bg-accent text-white' : 'text-muted hover:text-chalk'
+            active === tab.id ? 'bg-accent text-ink' : 'text-muted hover:text-chalk'
           }`}
         >
           {tab.label}
@@ -243,9 +243,13 @@ export function Stat({ label, value, tone = 'chalk' }) {
   const tones = { chalk: 'text-chalk', accent: 'text-accent', flag: 'text-flag', go: 'text-go' }
 
   return (
-    <div className="card px-4 py-3 text-center">
+    <div className="card px-2 py-3 text-center">
       <p className={`font-display text-2xl font-bold ${tones[tone]}`}>{value}</p>
-      <p className="eyebrow mt-0.5">{label}</p>
+      {/* Not `.eyebrow`: at 0.18em tracking a word like "Favourites" is wider
+          than a third of the sidebar and spills out of the card. */}
+      <p className="mt-0.5 font-display text-[0.6rem] font-semibold tracking-[0.06em] text-dim uppercase">
+        {label}
+      </p>
     </div>
   )
 }

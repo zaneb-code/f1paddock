@@ -64,7 +64,8 @@ export default function CommunityDetail() {
   if (!community) return null
 
   const isMember = user ? community.memberIds?.includes(user.id) : false
-  const accent = community.type === 'team' ? teamColour(community.refId) : '#FF2D20'
+  const accent =
+    community.type === 'team' ? teamColour(community.refId) : 'var(--color-accent)'
 
   return (
     <div className="shell py-10">

@@ -18,8 +18,8 @@ export function CommunityCard({ community, isMember, onToggleMember, canJoin }) 
     community.type === 'team'
       ? teamColour(community.refId)
       : community.type === 'driver'
-        ? '#FF2D20'
-        : '#71717A'
+        ? 'var(--color-accent)'
+        : 'var(--color-dim)'
 
   return (
     <div className="card card-hover flex flex-col overflow-hidden">

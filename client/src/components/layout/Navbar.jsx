@@ -66,7 +66,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-line bg-ink/85 backdrop-blur-lg">
       <div className="shell flex h-16 items-center gap-4">
         <Link to="/" className="flex shrink-0 items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent font-display text-lg font-bold text-white">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent font-display text-lg font-bold text-ink">
             F1
           </span>
           <span className="font-display text-xl font-bold tracking-wide">Paddock</span>
